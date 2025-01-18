@@ -2,7 +2,7 @@
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "toolbox",
   "title": "Toolbox",
-  "description": "All the things",
+  "description": "Toolbox to do various helpful functions like conversions",
   "icon": "command-icon.png",
   "author": "D3v01d",
   "owner": "d3v01d-personal",
