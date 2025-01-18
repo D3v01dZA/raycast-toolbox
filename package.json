@@ -5,6 +5,7 @@
   "description": "All the things",
   "icon": "command-icon.png",
   "author": "D3v01d",
+  "owner": "d3v01d-personal",
   "categories": [
     "Applications",
     "Developer Tools",
@@ -20,8 +21,8 @@
     }
   ],
   "dependencies": {
-    "@raycast/api": "^1.69.0",
-    "@raycast/utils": "^1.4.8",
+    "@raycast/api": "^1.89.0",
+    "@raycast/utils": "^1.18.1",
     "moment": "^2.30.1"
   },
   "devDependencies": {
