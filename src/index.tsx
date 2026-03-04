@@ -705,7 +705,7 @@ function numberBaseResults(text: string): Detail[] {
   } else if (/^0x[0-9a-f]+$/i.test(t)) {
     decimal = parseInt(t.slice(2), 16);
   }
-  // Suffix notation: 0b/0B, 0o/0O, 0x/0X, 0d/0D appended
+  // Suffix notation
   else if (/^[01]+b$/i.test(t)) {
     decimal = parseInt(t.slice(0, -1), 2);
   } else if (/^[0-7]+o$/i.test(t)) {
@@ -722,51 +722,27 @@ function numberBaseResults(text: string): Detail[] {
 
   if (decimal === null || isNaN(decimal) || !isFinite(decimal)) return [];
 
+  const bin = decimal.toString(2);
+  const oct = decimal.toString(8);
+  const dec = decimal.toString(10);
+  const hex = decimal.toString(16).toUpperCase();
+
   return [
-    { type: "Decimal (base 10)", value: decimal.toString(10) },
-    { type: "Binary (base 2)", value: "0b" + decimal.toString(2) },
-    { type: "Octal (base 8)", value: "0o" + decimal.toString(8) },
-    { type: "Hexadecimal (base 16)", value: "0x" + decimal.toString(16).toUpperCase() },
-  ].filter((r) => r.value !== t && r.value !== "0b" + t && r.value !== "0o" + t && r.value !== "0x" + t);
+    { type: "Decimal (base 10)", value: dec },
+    { type: "Binary (base 2)", value: "0b" + bin },
+    { type: "Binary (base 2) raw", value: bin },
+    { type: "Octal (base 8)", value: "0o" + oct },
+    { type: "Octal (base 8) raw", value: oct },
+    { type: "Hexadecimal (base 16)", value: "0x" + hex },
+    { type: "Hexadecimal (base 16) raw", value: hex },
+  ].filter((r) => r.value.toLowerCase() !== t.toLowerCase());
 }
 
 // ---------------------------------------------------------------------------
-// Main dispatcher
+// Date & Time
 // ---------------------------------------------------------------------------
 
-function conversionSections(text: string): Section[] {
-  const sections: Section[] = [];
-  const parsed = parseInput(text);
-  if (!parsed) return sections;
-
-  const { value, rawUnit } = parsed;
-  const unit = normalizeUnit(rawUnit);
-  if (unit === null) return sections;
-
-  if (TEMP_UNITS.has(unit))
-    sections.push({ category: "Temperature", results: temperatureResults(value, unit as TemperatureUnit) });
-  if (DISTANCE_UNITS.has(unit))
-    sections.push({ category: "Distance", results: distanceResults(value, unit as DistanceUnit) });
-  if (SPEED_UNITS.has(unit)) sections.push({ category: "Speed", results: speedResults(value, unit as SpeedUnit) });
-  if (WEIGHT_UNITS.has(unit)) sections.push({ category: "Weight", results: weightResults(value, unit as WeightUnit) });
-  if (DURATION_UNITS.has(unit))
-    sections.push({ category: "Duration", results: durationResults(value, unit as DurationUnit) });
-  if (AREA_UNITS.has(unit)) sections.push({ category: "Area", results: areaResults(value, unit as AreaUnit) });
-  if (VOLUME_UNITS.has(unit)) sections.push({ category: "Volume", results: volumeResults(value, unit as VolumeUnit) });
-  if (ANGLE_UNITS.has(unit)) sections.push({ category: "Angle", results: angleResults(value, unit as AngleUnit) });
-  if (ENERGY_UNITS.has(unit)) sections.push({ category: "Energy", results: energyResults(value, unit as EnergyUnit) });
-  if (FREQUENCY_UNITS.has(unit))
-    sections.push({ category: "Frequency", results: frequencyResults(value, unit as FrequencyUnit) });
-  if (POWER_UNITS.has(unit)) sections.push({ category: "Power", results: powerResults(value, unit as PowerUnit) });
-
-  return sections;
-}
-
-// ---------------------------------------------------------------------------
-// Date & Time (unchanged)
-// ---------------------------------------------------------------------------
-
-function timeResults(text: string): Detail[] {
+function dateTimeResults(text: string): Detail[] {
   const results: Detail[] = [];
 
   function addDate(date: moment.Moment, isNow: boolean) {
@@ -807,6 +783,48 @@ function timeResults(text: string): Detail[] {
 }
 
 // ---------------------------------------------------------------------------
+// Main dispatcher
+// ---------------------------------------------------------------------------
+
+function conversionSections(text: string): Section[] {
+  const sections: Section[] = [];
+
+  const dateTime = dateTimeResults(text);
+  if (dateTime.length > 0) sections.push({ category: "Date & Time", results: dateTime });
+
+  const bases = numberBaseResults(text);
+  if (bases.length > 0) sections.push({ category: "Number Base", results: bases });
+
+  const parsed = parseInput(text);
+  if (parsed) {
+    const { value, rawUnit } = parsed;
+    const unit = normalizeUnit(rawUnit);
+    if (unit !== null) {
+      if (TEMP_UNITS.has(unit))
+        sections.push({ category: "Temperature", results: temperatureResults(value, unit as TemperatureUnit) });
+      if (DISTANCE_UNITS.has(unit))
+        sections.push({ category: "Distance", results: distanceResults(value, unit as DistanceUnit) });
+      if (SPEED_UNITS.has(unit)) sections.push({ category: "Speed", results: speedResults(value, unit as SpeedUnit) });
+      if (WEIGHT_UNITS.has(unit))
+        sections.push({ category: "Weight", results: weightResults(value, unit as WeightUnit) });
+      if (DURATION_UNITS.has(unit))
+        sections.push({ category: "Duration", results: durationResults(value, unit as DurationUnit) });
+      if (AREA_UNITS.has(unit)) sections.push({ category: "Area", results: areaResults(value, unit as AreaUnit) });
+      if (VOLUME_UNITS.has(unit))
+        sections.push({ category: "Volume", results: volumeResults(value, unit as VolumeUnit) });
+      if (ANGLE_UNITS.has(unit)) sections.push({ category: "Angle", results: angleResults(value, unit as AngleUnit) });
+      if (ENERGY_UNITS.has(unit))
+        sections.push({ category: "Energy", results: energyResults(value, unit as EnergyUnit) });
+      if (FREQUENCY_UNITS.has(unit))
+        sections.push({ category: "Frequency", results: frequencyResults(value, unit as FrequencyUnit) });
+      if (POWER_UNITS.has(unit)) sections.push({ category: "Power", results: powerResults(value, unit as PowerUnit) });
+    }
+  }
+
+  return sections;
+}
+
+// ---------------------------------------------------------------------------
 // Command
 // ---------------------------------------------------------------------------
 
@@ -819,22 +837,7 @@ export default function Command() {
       setSections([]);
       return;
     }
-
-    const all: Section[] = [];
-
-    const time = timeResults(text);
-    if (time.length > 0) {
-      all.push({ category: "Date & Time", results: time });
-    }
-
-    const bases = numberBaseResults(text);
-    if (bases.length > 0) {
-      all.push({ category: "Number Base", results: bases });
-    }
-
-    all.push(...conversionSections(text));
-
-    setSections(all);
+    setSections(conversionSections(text));
   }, [text]);
 
   return (
