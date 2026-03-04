@@ -743,21 +743,21 @@ function conversionSections(text: string): Section[] {
   const unit = normalizeUnit(rawUnit);
   if (unit === null) return sections;
 
-  if (DISTANCE_UNITS.has(unit))
-    sections.push({ category: "Distance", results: distanceResults(value, unit as DistanceUnit) });
-  if (WEIGHT_UNITS.has(unit)) sections.push({ category: "Weight", results: weightResults(value, unit as WeightUnit) });
-  if (AREA_UNITS.has(unit)) sections.push({ category: "Area", results: areaResults(value, unit as AreaUnit) });
-  if (VOLUME_UNITS.has(unit)) sections.push({ category: "Volume", results: volumeResults(value, unit as VolumeUnit) });
   if (TEMP_UNITS.has(unit))
     sections.push({ category: "Temperature", results: temperatureResults(value, unit as TemperatureUnit) });
+  if (DISTANCE_UNITS.has(unit))
+    sections.push({ category: "Distance", results: distanceResults(value, unit as DistanceUnit) });
+  if (SPEED_UNITS.has(unit)) sections.push({ category: "Speed", results: speedResults(value, unit as SpeedUnit) });
+  if (WEIGHT_UNITS.has(unit)) sections.push({ category: "Weight", results: weightResults(value, unit as WeightUnit) });
   if (DURATION_UNITS.has(unit))
     sections.push({ category: "Duration", results: durationResults(value, unit as DurationUnit) });
+  if (AREA_UNITS.has(unit)) sections.push({ category: "Area", results: areaResults(value, unit as AreaUnit) });
+  if (VOLUME_UNITS.has(unit)) sections.push({ category: "Volume", results: volumeResults(value, unit as VolumeUnit) });
   if (ANGLE_UNITS.has(unit)) sections.push({ category: "Angle", results: angleResults(value, unit as AngleUnit) });
   if (ENERGY_UNITS.has(unit)) sections.push({ category: "Energy", results: energyResults(value, unit as EnergyUnit) });
   if (FREQUENCY_UNITS.has(unit))
     sections.push({ category: "Frequency", results: frequencyResults(value, unit as FrequencyUnit) });
   if (POWER_UNITS.has(unit)) sections.push({ category: "Power", results: powerResults(value, unit as PowerUnit) });
-  if (SPEED_UNITS.has(unit)) sections.push({ category: "Speed", results: speedResults(value, unit as SpeedUnit) });
 
   return sections;
 }
@@ -787,19 +787,21 @@ function timeResults(text: string): Detail[] {
     }
   }
 
-  if (text.length === 10) {
-    const epoch = Number(text + "000");
-    if (!isNaN(epoch)) addDate(moment(epoch), false);
+  if (/^\d{10}$/.test(text)) {
+    addDate(moment(Number(text) * 1000), false);
   }
-  if (text.length === 13) {
-    const epoch = Number(text);
-    if (!isNaN(epoch)) addDate(moment(epoch), false);
+  if (/^\d{13}$/.test(text)) {
+    addDate(moment(Number(text)), false);
   }
   if (text.toLocaleLowerCase() === "now") {
     addDate(moment(), true);
   }
-  const other = moment(text);
-  if (other.isValid()) addDate(other, false);
+  // Only parse as a date string if it contains non-numeric characters (e.g. hyphens,
+  // slashes, colons, spaces) so bare integers like 10/100/1000 are never treated as dates.
+  if (/[^\d]/.test(text)) {
+    const other = moment(text, moment.ISO_8601, false);
+    if (other.isValid()) addDate(other, false);
+  }
 
   return results;
 }
@@ -818,17 +820,19 @@ export default function Command() {
       return;
     }
 
-    const all: Section[] = [...conversionSections(text)];
+    const all: Section[] = [];
+
+    const time = timeResults(text);
+    if (time.length > 0) {
+      all.push({ category: "Date & Time", results: time });
+    }
 
     const bases = numberBaseResults(text);
     if (bases.length > 0) {
       all.push({ category: "Number Base", results: bases });
     }
 
-    const time = timeResults(text);
-    if (time.length > 0) {
-      all.push({ category: "Date & Time", results: time });
-    }
+    all.push(...conversionSections(text));
 
     setSections(all);
   }, [text]);
