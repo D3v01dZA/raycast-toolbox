@@ -31,8 +31,24 @@ type AreaUnit = "m2" | "km2" | "cm2" | "ft2" | "in2" | "acres" | "ha";
 type VolumeUnit = "l" | "ml" | "gal" | "qt" | "pt" | "floz" | "cup";
 type TemperatureUnit = "C" | "F" | "K";
 type DurationUnit = "ms" | "s" | "min" | "h" | "d" | "wk" | "mo" | "yr";
+type AngleUnit = "deg" | "rad" | "grad" | "turn";
+type EnergyUnit = "j" | "kj" | "cal" | "kcal" | "wh" | "kwh" | "ev" | "btu";
+type FrequencyUnit = "hz" | "khz" | "mhz" | "ghz" | "rpm";
+type PowerUnit = "w" | "kw" | "mw" | "hp" | "btuhr";
+type SpeedUnit = "ms" | "kmh" | "mph" | "knot" | "fts";
 
-type AnyUnit = DistanceUnit | WeightUnit | AreaUnit | VolumeUnit | TemperatureUnit | DurationUnit;
+type AnyUnit =
+  | DistanceUnit
+  | WeightUnit
+  | AreaUnit
+  | VolumeUnit
+  | TemperatureUnit
+  | DurationUnit
+  | AngleUnit
+  | EnergyUnit
+  | FrequencyUnit
+  | PowerUnit
+  | SpeedUnit;
 
 // ---------------------------------------------------------------------------
 // Unit alias normalization
@@ -218,6 +234,102 @@ const UNIT_ALIASES: Record<string, AnyUnit> = {
   yr: "yr",
   year: "yr",
   years: "yr",
+
+  // Angle
+  deg: "deg",
+  degree: "deg",
+  degrees: "deg",
+  rad: "rad",
+  radian: "rad",
+  radians: "rad",
+  grad: "grad",
+  gradian: "grad",
+  gradians: "grad",
+  gon: "grad",
+  turn: "turn",
+  turns: "turn",
+  revolution: "turn",
+  revolutions: "turn",
+  rev: "turn",
+
+  // Energy
+  j: "j",
+  joule: "j",
+  joules: "j",
+  kj: "kj",
+  kilojoule: "kj",
+  kilojoules: "kj",
+  cal: "cal",
+  calorie: "cal",
+  calories: "cal",
+  kcal: "kcal",
+  kilocalorie: "kcal",
+  kilocalories: "kcal",
+  wh: "wh",
+  "watt hour": "wh",
+  "watt hours": "wh",
+  kwh: "kwh",
+  "kilowatt hour": "kwh",
+  "kilowatt hours": "kwh",
+  ev: "ev",
+  electronvolt: "ev",
+  electronvolts: "ev",
+  btu: "btu",
+  "british thermal unit": "btu",
+  "british thermal units": "btu",
+
+  // Frequency
+  hz: "hz",
+  hertz: "hz",
+  khz: "khz",
+  kilohertz: "khz",
+  mhz: "mhz",
+  megahertz: "mhz",
+  ghz: "ghz",
+  gigahertz: "ghz",
+  rpm: "rpm",
+  "revolutions per minute": "rpm",
+
+  // Power
+  w: "w",
+  watt: "w",
+  watts: "w",
+  kw: "kw",
+  kilowatt: "kw",
+  kilowatts: "kw",
+  mw: "mw",
+  megawatt: "mw",
+  megawatts: "mw",
+  hp: "hp",
+  horsepower: "hp",
+  "btu/hr": "btuhr",
+  "btu/h": "btuhr",
+  "btu per hour": "btuhr",
+
+  // Speed
+  "m/s": "ms",
+  "meter per second": "ms",
+  "meters per second": "ms",
+  "metre per second": "ms",
+  "metres per second": "ms",
+  mps: "ms",
+  "km/h": "kmh",
+  kph: "kmh",
+  "kilometer per hour": "kmh",
+  "kilometers per hour": "kmh",
+  "kilometre per hour": "kmh",
+  "kilometres per hour": "kmh",
+  kmph: "kmh",
+  mph: "mph",
+  "mile per hour": "mph",
+  "miles per hour": "mph",
+  knot: "knot",
+  knots: "knot",
+  kt: "knot",
+  "ft/s": "fts",
+  fps: "fts",
+  "foot per second": "fts",
+  "feet per second": "fts",
 };
 
 function normalizeUnit(raw: string): AnyUnit | null {
@@ -230,6 +342,11 @@ const AREA_UNITS = new Set<AnyUnit>(["m2", "km2", "cm2", "ft2", "in2", "acres", 
 const VOLUME_UNITS = new Set<AnyUnit>(["l", "ml", "gal", "qt", "pt", "floz", "cup"]);
 const TEMP_UNITS = new Set<AnyUnit>(["C", "F", "K"]);
 const DURATION_UNITS = new Set<AnyUnit>(["ms", "s", "min", "h", "d", "wk", "mo", "yr"]);
+const ANGLE_UNITS = new Set<AnyUnit>(["deg", "rad", "grad", "turn"]);
+const ENERGY_UNITS = new Set<AnyUnit>(["j", "kj", "cal", "kcal", "wh", "kwh", "ev", "btu"]);
+const FREQUENCY_UNITS = new Set<AnyUnit>(["hz", "khz", "mhz", "ghz", "rpm"]);
+const POWER_UNITS = new Set<AnyUnit>(["w", "kw", "mw", "hp", "btuhr"]);
+const SPEED_UNITS = new Set<AnyUnit>(["ms", "kmh", "mph", "knot", "fts"]);
 
 // ---------------------------------------------------------------------------
 // Input parser
@@ -430,6 +547,190 @@ function durationResults(value: number, unit: DurationUnit): Detail[] {
 }
 
 // ---------------------------------------------------------------------------
+// Angle
+// ---------------------------------------------------------------------------
+
+const TO_DEGREES: Record<AngleUnit, number> = {
+  deg: 1,
+  rad: 180 / Math.PI,
+  grad: 0.9,
+  turn: 360,
+};
+
+const ANGLE_LABELS: Record<AngleUnit, string> = {
+  deg: "Degrees (deg)",
+  rad: "Radians (rad)",
+  grad: "Gradians (grad)",
+  turn: "Turns",
+};
+
+function angleResults(value: number, unit: AngleUnit): Detail[] {
+  const degrees = value * TO_DEGREES[unit];
+  return (Object.keys(TO_DEGREES) as AngleUnit[])
+    .filter((u) => u !== unit)
+    .map((u) => ({ type: ANGLE_LABELS[u], value: fmt(degrees / TO_DEGREES[u]) }));
+}
+
+// ---------------------------------------------------------------------------
+// Energy
+// ---------------------------------------------------------------------------
+
+// All stored in joules internally
+const TO_JOULES: Record<EnergyUnit, number> = {
+  j: 1,
+  kj: 1000,
+  cal: 4.184,
+  kcal: 4184,
+  wh: 3600,
+  kwh: 3_600_000,
+  ev: 1.602176634e-19,
+  btu: 1055.06,
+};
+
+const ENERGY_LABELS: Record<EnergyUnit, string> = {
+  j: "Joules (J)",
+  kj: "Kilojoules (kJ)",
+  cal: "Calories (cal)",
+  kcal: "Kilocalories (kcal)",
+  wh: "Watt-hours (Wh)",
+  kwh: "Kilowatt-hours (kWh)",
+  ev: "Electronvolts (eV)",
+  btu: "BTU",
+};
+
+function energyResults(value: number, unit: EnergyUnit): Detail[] {
+  const joules = value * TO_JOULES[unit];
+  return (Object.keys(TO_JOULES) as EnergyUnit[])
+    .filter((u) => u !== unit)
+    .map((u) => ({ type: ENERGY_LABELS[u], value: fmt(joules / TO_JOULES[u]) }));
+}
+
+// ---------------------------------------------------------------------------
+// Frequency
+// ---------------------------------------------------------------------------
+
+// All stored in Hz internally
+const TO_HZ: Record<FrequencyUnit, number> = {
+  hz: 1,
+  khz: 1000,
+  mhz: 1_000_000,
+  ghz: 1_000_000_000,
+  rpm: 1 / 60,
+};
+
+const FREQUENCY_LABELS: Record<FrequencyUnit, string> = {
+  hz: "Hertz (Hz)",
+  khz: "Kilohertz (kHz)",
+  mhz: "Megahertz (MHz)",
+  ghz: "Gigahertz (GHz)",
+  rpm: "RPM",
+};
+
+function frequencyResults(value: number, unit: FrequencyUnit): Detail[] {
+  const hz = value * TO_HZ[unit];
+  return (Object.keys(TO_HZ) as FrequencyUnit[])
+    .filter((u) => u !== unit)
+    .map((u) => ({ type: FREQUENCY_LABELS[u], value: fmt(hz / TO_HZ[u]) }));
+}
+
+// ---------------------------------------------------------------------------
+// Power
+// ---------------------------------------------------------------------------
+
+// All stored in watts internally
+const TO_WATTS: Record<PowerUnit, number> = {
+  w: 1,
+  kw: 1000,
+  mw: 1_000_000,
+  hp: 745.69987,
+  btuhr: 0.29307107,
+};
+
+const POWER_LABELS: Record<PowerUnit, string> = {
+  w: "Watts (W)",
+  kw: "Kilowatts (kW)",
+  mw: "Megawatts (MW)",
+  hp: "Horsepower (hp)",
+  btuhr: "BTU/hr",
+};
+
+function powerResults(value: number, unit: PowerUnit): Detail[] {
+  const watts = value * TO_WATTS[unit];
+  return (Object.keys(TO_WATTS) as PowerUnit[])
+    .filter((u) => u !== unit)
+    .map((u) => ({ type: POWER_LABELS[u], value: fmt(watts / TO_WATTS[u]) }));
+}
+
+// ---------------------------------------------------------------------------
+// Speed
+// ---------------------------------------------------------------------------
+
+// All stored in m/s internally
+const TO_MPS: Record<SpeedUnit, number> = {
+  ms: 1,
+  kmh: 1 / 3.6,
+  mph: 0.44704,
+  knot: 0.514444,
+  fts: 0.3048,
+};
+
+const SPEED_LABELS: Record<SpeedUnit, string> = {
+  ms: "Meters/second (m/s)",
+  kmh: "Kilometers/hour (km/h)",
+  mph: "Miles/hour (mph)",
+  knot: "Knots",
+  fts: "Feet/second (ft/s)",
+};
+
+function speedResults(value: number, unit: SpeedUnit): Detail[] {
+  const mps = value * TO_MPS[unit];
+  return (Object.keys(TO_MPS) as SpeedUnit[])
+    .filter((u) => u !== unit)
+    .map((u) => ({ type: SPEED_LABELS[u], value: fmt(mps / TO_MPS[u]) }));
+}
+
+// ---------------------------------------------------------------------------
+// Number base
+// ---------------------------------------------------------------------------
+
+function numberBaseResults(text: string): Detail[] {
+  const t = text.trim();
+  let decimal: number | null = null;
+
+  // Prefix notation: 0b, 0o, 0x
+  if (/^0b[01]+$/i.test(t)) {
+    decimal = parseInt(t.slice(2), 2);
+  } else if (/^0o[0-7]+$/i.test(t)) {
+    decimal = parseInt(t.slice(2), 8);
+  } else if (/^0x[0-9a-f]+$/i.test(t)) {
+    decimal = parseInt(t.slice(2), 16);
+  }
+  // Suffix notation: 0b/0B, 0o/0O, 0x/0X, 0d/0D appended
+  else if (/^[01]+b$/i.test(t)) {
+    decimal = parseInt(t.slice(0, -1), 2);
+  } else if (/^[0-7]+o$/i.test(t)) {
+    decimal = parseInt(t.slice(0, -1), 8);
+  } else if (/^[0-9a-f]+h$/i.test(t)) {
+    decimal = parseInt(t.slice(0, -1), 16);
+  } else if (/^[0-9]+d$/i.test(t)) {
+    decimal = parseInt(t.slice(0, -1), 10);
+  }
+  // Plain integer (decimal only — avoids false-positives on floats/dates)
+  else if (/^[0-9]+$/.test(t)) {
+    decimal = parseInt(t, 10);
+  }
+
+  if (decimal === null || isNaN(decimal) || !isFinite(decimal)) return [];
+
+  return [
+    { type: "Decimal (base 10)", value: decimal.toString(10) },
+    { type: "Binary (base 2)", value: "0b" + decimal.toString(2) },
+    { type: "Octal (base 8)", value: "0o" + decimal.toString(8) },
+    { type: "Hexadecimal (base 16)", value: "0x" + decimal.toString(16).toUpperCase() },
+  ].filter((r) => r.value !== t && r.value !== "0b" + t && r.value !== "0o" + t && r.value !== "0x" + t);
+}
+
+// ---------------------------------------------------------------------------
 // Main dispatcher
 // ---------------------------------------------------------------------------
 
@@ -451,6 +752,12 @@ function conversionSections(text: string): Section[] {
     sections.push({ category: "Temperature", results: temperatureResults(value, unit as TemperatureUnit) });
   if (DURATION_UNITS.has(unit))
     sections.push({ category: "Duration", results: durationResults(value, unit as DurationUnit) });
+  if (ANGLE_UNITS.has(unit)) sections.push({ category: "Angle", results: angleResults(value, unit as AngleUnit) });
+  if (ENERGY_UNITS.has(unit)) sections.push({ category: "Energy", results: energyResults(value, unit as EnergyUnit) });
+  if (FREQUENCY_UNITS.has(unit))
+    sections.push({ category: "Frequency", results: frequencyResults(value, unit as FrequencyUnit) });
+  if (POWER_UNITS.has(unit)) sections.push({ category: "Power", results: powerResults(value, unit as PowerUnit) });
+  if (SPEED_UNITS.has(unit)) sections.push({ category: "Speed", results: speedResults(value, unit as SpeedUnit) });
 
   return sections;
 }
@@ -512,6 +819,11 @@ export default function Command() {
     }
 
     const all: Section[] = [...conversionSections(text)];
+
+    const bases = numberBaseResults(text);
+    if (bases.length > 0) {
+      all.push({ category: "Number Base", results: bases });
+    }
 
     const time = timeResults(text);
     if (time.length > 0) {
