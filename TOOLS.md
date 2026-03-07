@@ -10,8 +10,8 @@ command already uses for 13 conversion types.
 |---|----------------------|----------------|
 | 1 | Convert              | implemented    |
 | 2 | Networking           | implemented |
-| 3 | Encode/Decode        | to do          |
-| 4 | Generate             | to do          |
+| 3 | Encode/Decode/Format | implemented    |
+| 4 | Generate             | implemented    |
 | 5 | (free slot)          |                |
 
 ## 1. Convert (implemented)
@@ -31,28 +31,30 @@ command already uses for 13 conversion types.
 - [x] Date & Time — timestamps, ISO 8601, relative differences
 - [x] Color — HEX, RGB, HSL, HSV (e.g. type `#ff5533` or `rgb(255,85,51)`)
 
-## 2. Networking (partial — merge existing Subnet Calculator + HTTP Status Codes into one command)
+## 2. Networking (implemented)
 
 Auto-detects input: IP/CIDR shows subnet results, numbers/text filter HTTP status codes.
-When the search bar is empty, show the full HTTP status code reference.
+When the search bar is empty, shows the full HTTP status code reference.
 
 - [x] IP/CIDR calculation — network, broadcast, host range, masks, IP class
+- [x] URL parser — scheme, host, port, path, query params, fragment
 - [x] HTTP status codes — searchable reference with descriptions
 
-## 3. Encode/Decode (to do)
+## 3. Encode/Decode/Format (implemented)
 
-Single search bar, auto-detects input and shows all relevant transformations as sections.
+Pick a tool, then type in the search bar.
 
-- [ ] Base64 encode/decode
-- [ ] URL encode/decode
-- [ ] HTML entity encode/decode
-- [ ] JWT decode (detect `eyJ...` tokens, show header + payload)
-- [ ] Case conversion — camelCase, snake_case, kebab-case, PascalCase, UPPER_CASE, Title Case
-- [ ] Text stats — character, word, line, and space counts
-- [ ] JSON format/validate
-- [ ] String escape/unescape — JSON, HTML, URL, regex
-- [ ] Cron expression parser — plain English description
-- [ ] URL parser — break down into scheme, host, path, query params, fragment
+- [x] Base64 encode/decode
+- [x] URL encode/decode
+- [x] HTML entity encode/decode
+- [x] JWT decode (header, payload, expiry, issued at)
+- [x] Case conversion — camelCase, snake_case, kebab-case, PascalCase, UPPER_CASE, Title Case
+- [x] Text stats — character, word, line, space, byte counts
+- [x] JSON format/validate (formatted + minified output)
+- [x] String escape — JSON, HTML, URL, regex
+- [x] Slug — convert text to URL-safe slug
+- [x] Cron expression parser — plain English description per field
+- [x] cURL/fetch/wget converter — paste a curl command, get fetch/wget equivalents and vice versa
 
 ## 4. Generate (implemented)
 
@@ -61,5 +63,4 @@ List of generators. Select one to produce output, copy to clipboard.
 - [x] UUID v4
 - [x] Secure password
 - [x] Lorem ipsum (sentence, paragraph, 3 paragraphs)
-- [x] Slug from text
 - [x] Hash from text — MD5, SHA-1, SHA-256, SHA-512

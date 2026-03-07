@@ -341,45 +341,6 @@ function LoremIpsumView() {
 }
 
 // ---------------------------------------------------------------------------
-// Slug
-// ---------------------------------------------------------------------------
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function SlugView() {
-  const [text, setText] = useState("");
-  const slug = text ? slugify(text) : "";
-
-  return (
-    <List
-      navigationTitle="Slug Generator"
-      onSearchTextChange={setText}
-      searchBarPlaceholder="Enter text to slugify..."
-      throttle
-    >
-      {slug && (
-        <List.Item
-          title={slug}
-          actions={
-            <ActionPanel>
-              <Action.CopyToClipboard title="Copy to Clipboard" content={slug} />
-            </ActionPanel>
-          }
-        />
-      )}
-    </List>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Hash
 // ---------------------------------------------------------------------------
 
@@ -456,15 +417,6 @@ export default function Command() {
         actions={
           <ActionPanel>
             <Action.Push title="Open" target={<LoremIpsumView />} />
-          </ActionPanel>
-        }
-      />
-      <List.Item
-        title="Slug"
-        subtitle="Convert text to a URL-safe slug"
-        actions={
-          <ActionPanel>
-            <Action.Push title="Open" target={<SlugView />} />
           </ActionPanel>
         }
       />

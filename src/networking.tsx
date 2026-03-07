@@ -375,6 +375,43 @@ const STATUS_CODES: Category[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// URL Parser
+// ---------------------------------------------------------------------------
+
+interface URLPart {
+  label: string;
+  value: string;
+}
+
+function parseURL(text: string): URLPart[] | null {
+  let url: URL;
+  try {
+    url = new URL(text.trim());
+  } catch {
+    return null;
+  }
+
+  const results: URLPart[] = [
+    { label: "Scheme", value: url.protocol.replace(":", "") },
+    { label: "Host", value: url.hostname },
+  ];
+
+  if (url.port) results.push({ label: "Port", value: url.port });
+  if (url.pathname && url.pathname !== "/") results.push({ label: "Path", value: url.pathname });
+  if (url.username) results.push({ label: "Username", value: url.username });
+  if (url.password) results.push({ label: "Password", value: url.password });
+
+  url.searchParams.forEach((value, key) => {
+    results.push({ label: `Param: ${key}`, value });
+  });
+
+  if (url.hash) results.push({ label: "Fragment", value: url.hash.slice(1) });
+  results.push({ label: "Origin", value: url.origin });
+
+  return results;
+}
+
+// ---------------------------------------------------------------------------
 // Command
 // ---------------------------------------------------------------------------
 
@@ -392,14 +429,11 @@ export default function Command() {
   }, [text]);
 
   const showSubnet = subnetResults.length > 0;
+  const urlParts = text ? parseURL(text) : null;
   const query = text.toLowerCase();
 
   return (
-    <List
-      onSearchTextChange={setText}
-      searchBarPlaceholder="IP/CIDR for subnet calc, or search HTTP status codes..."
-      throttle
-    >
+    <List onSearchTextChange={setText} searchBarPlaceholder="IP/CIDR, URL, or search HTTP status codes..." throttle>
       {showSubnet ? (
         <List.Section title="Subnet">
           {subnetResults.map((result) => (
@@ -410,6 +444,21 @@ export default function Command() {
               actions={
                 <ActionPanel>
                   <Action.CopyToClipboard title="Copy to Clipboard" content={result.value} />
+                </ActionPanel>
+              }
+            />
+          ))}
+        </List.Section>
+      ) : urlParts ? (
+        <List.Section title="URL">
+          {urlParts.map((part, i) => (
+            <List.Item
+              key={`${part.label}-${i}`}
+              title={part.label}
+              accessories={[{ text: part.value }]}
+              actions={
+                <ActionPanel>
+                  <Action.CopyToClipboard title="Copy to Clipboard" content={part.value} />
                 </ActionPanel>
               }
             />
