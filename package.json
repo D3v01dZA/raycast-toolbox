@@ -18,6 +18,18 @@
       "title": "Convert",
       "description": "Converts things",
       "mode": "view"
+    },
+    {
+      "name": "subnet-calculator",
+      "title": "Subnet Calculator",
+      "description": "Calculate network details from IP/CIDR notation",
+      "mode": "view"
+    },
+    {
+      "name": "http-status-codes",
+      "title": "HTTP Status Codes",
+      "description": "Search and look up HTTP status codes",
+      "mode": "view"
     }
   ],
   "dependencies": {
