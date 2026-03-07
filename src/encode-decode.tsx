@@ -405,11 +405,12 @@ function JSONFormatView() {
     );
   }
 
-  // Strip JSONC features: // comments, /* block comments */, trailing commas
+  // Strip JSONC features: // comments, /* block comments */, trailing commas, unquoted keys
   const stripped = text
     .replace(/\/\/.*$/gm, "")
     .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/,\s*([}\]])/g, "$1");
+    .replace(/,\s*([}\]])/g, "$1")
+    .replace(/(?<=[{,]\s*)([a-zA-Z_$][\w$]*)\s*:/g, '"$1":');
 
   let formatted: string;
   let minified: string;
