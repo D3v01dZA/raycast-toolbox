@@ -24,6 +24,12 @@
       "title": "Networking",
       "description": "Subnet calculator and HTTP status code reference",
       "mode": "view"
+    },
+    {
+      "name": "generate",
+      "title": "Generate",
+      "description": "Generate UUIDs, passwords, lorem ipsum, slugs, and hashes",
+      "mode": "view"
     }
   ],
   "dependencies": {

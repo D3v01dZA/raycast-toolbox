@@ -54,12 +54,12 @@ Single search bar, auto-detects input and shows all relevant transformations as 
 - [ ] Cron expression parser — plain English description
 - [ ] URL parser — break down into scheme, host, path, query params, fragment
 
-## 4. Generate (to do)
+## 4. Generate (implemented)
 
 List of generators. Select one to produce output, copy to clipboard.
 
-- [ ] UUID v4 / v7
-- [ ] Secure password (configurable length/character sets)
-- [ ] Lorem ipsum (words, sentences, paragraphs)
-- [ ] Slug from text
-- [ ] Hash from text — MD5, SHA-1, SHA-256, SHA-512
+- [x] UUID v4
+- [x] Secure password
+- [x] Lorem ipsum (sentence, paragraph, 3 paragraphs)
+- [x] Slug from text
+- [x] Hash from text — MD5, SHA-1, SHA-256, SHA-512
