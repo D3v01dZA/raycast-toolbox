@@ -1,61 +1,65 @@
 # Tools
 
-## Conversions (implemented)
+Raycast private store extensions are limited to 5 commands. To maximise coverage, tools are
+consolidated into umbrella commands that auto-detect input type — the same pattern the Convert
+command already uses for 13 conversion types.
 
-- [x] **Distance** — km, m, cm, mm, mi, ft, in, yd
-- [x] **Weight** — kg, g, mg, lb, oz, metric tons
-- [x] **Area** — m², km², cm², ft², in², acres, hectares
-- [x] **Volume** — L, mL, gal, qt, pt, fl oz, cups
-- [x] **Temperature** — Celsius, Fahrenheit, Kelvin
-- [x] **Duration** — ms, s, min, h, d, wk, mo, yr
-- [x] **Angle** — degrees, radians, gradians, turns
-- [x] **Energy** — J, kJ, cal, kcal, Wh, kWh, eV, BTU
-- [x] **Frequency** — Hz, kHz, MHz, GHz, RPM
-- [x] **Power** — W, kW, MW, hp, BTU/hr
-- [x] **Speed** — m/s, km/h, mph, knots, ft/s
-- [x] **Number Base** — decimal, binary, octal, hexadecimal
-- [x] **Date & Time** — timestamps, ISO 8601, relative differences
+## Command budget (5 max)
 
-## To implement
+| # | Command              | Status         |
+|---|----------------------|----------------|
+| 1 | Convert              | implemented    |
+| 2 | Networking           | implemented |
+| 3 | Encode/Decode        | to do          |
+| 4 | Generate             | to do          |
+| 5 | (free slot)          |                |
 
-Tools inspired by [prism.tools](https://github.com/blgardner/prism.tools) and [usefultools.work](https://usefultools.work/en) that make sense as Raycast commands.
+## 1. Convert (implemented)
 
-## Generators
+- [x] Distance — km, m, cm, mm, mi, ft, in, yd
+- [x] Weight — kg, g, mg, lb, oz, metric tons
+- [x] Area — m², km², cm², ft², in², acres, hectares
+- [x] Volume — L, mL, gal, qt, pt, fl oz, cups
+- [x] Temperature — Celsius, Fahrenheit, Kelvin
+- [x] Duration — ms, s, min, h, d, wk, mo, yr
+- [x] Angle — degrees, radians, gradians, turns
+- [x] Energy — J, kJ, cal, kcal, Wh, kWh, eV, BTU
+- [x] Frequency — Hz, kHz, MHz, GHz, RPM
+- [x] Power — W, kW, MW, hp, BTU/hr
+- [x] Speed — m/s, km/h, mph, knots, ft/s
+- [x] Number Base — decimal, binary, octal, hexadecimal
+- [x] Date & Time — timestamps, ISO 8601, relative differences
+- [x] Color — HEX, RGB, HSL, HSV (e.g. type `#ff5533` or `rgb(255,85,51)`)
 
-- [ ] **UUID Generator** — Generate UUID v4 (and v7), copy to clipboard
-- [ ] **Password Generator** — Generate secure passwords with configurable length/character sets
-- [ ] **Hash Generator** — Input text, output MD5/SHA-1/SHA-256/SHA-512 hashes
-- [ ] **Lorem Ipsum** — Generate placeholder text (words, sentences, paragraphs)
-- [ ] **QR Code Generator** — Generate a QR code from text/URL input
-- [ ] **Slug Generator** — Convert text to URL-safe slugs
+## 2. Networking (partial — merge existing Subnet Calculator + HTTP Status Codes into one command)
 
-## Encoders & Decoders
+Auto-detects input: IP/CIDR shows subnet results, numbers/text filter HTTP status codes.
+When the search bar is empty, show the full HTTP status code reference.
 
-- [ ] **Base64 Encode/Decode** — Encode or decode Base64 strings
-- [ ] **URL Encode/Decode** — Encode or decode URL components
-- [ ] **HTML Entity Encode/Decode** — Encode or decode HTML entities
-- [ ] **JWT Decoder** — Paste a JWT, see decoded header and payload
+- [x] IP/CIDR calculation — network, broadcast, host range, masks, IP class
+- [x] HTTP status codes — searchable reference with descriptions
 
-## Formatters & Parsers
+## 3. Encode/Decode (to do)
 
-- [ ] **JSON Formatter** — Format/validate JSON input
-- [ ] **URL Parser** — Break down a URL into its components (scheme, host, path, query params, etc.)
-- [ ] **Cron Expression Parser** — Describe what a cron expression does in plain English
+Single search bar, auto-detects input and shows all relevant transformations as sections.
 
-## Text Utilities
+- [ ] Base64 encode/decode
+- [ ] URL encode/decode
+- [ ] HTML entity encode/decode
+- [ ] JWT decode (detect `eyJ...` tokens, show header + payload)
+- [ ] Case conversion — camelCase, snake_case, kebab-case, PascalCase, UPPER_CASE, Title Case
+- [ ] Text stats — character, word, line, and space counts
+- [ ] JSON format/validate
+- [ ] String escape/unescape — JSON, HTML, URL, regex
+- [ ] Cron expression parser — plain English description
+- [ ] URL parser — break down into scheme, host, path, query params, fragment
 
-- [ ] **Case Converter** — Convert text between camelCase, snake_case, kebab-case, PascalCase, UPPER_CASE, Title Case
-- [ ] **Text Counter** — Count characters, words, lines, and spaces in text
-- [ ] **String Escaper** — Escape/unescape strings for JSON, HTML, URLs, regex
+## 4. Generate (to do)
 
-## Reference
+List of generators. Select one to produce output, copy to clipboard.
 
-- [x] **HTTP Status Codes** — Search and look up HTTP status codes with descriptions
-
-## Color
-
-- [ ] **Color Converter** — Convert between HEX, RGB, HSL, and HSV color formats
-
-## Networking
-
-- [x] **Subnet Calculator** — Calculate network address, broadcast, host range from IP/CIDR
+- [ ] UUID v4 / v7
+- [ ] Secure password (configurable length/character sets)
+- [ ] Lorem ipsum (words, sentences, paragraphs)
+- [ ] Slug from text
+- [ ] Hash from text — MD5, SHA-1, SHA-256, SHA-512

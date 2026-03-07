@@ -42,6 +42,32 @@ import { powerResults } from "./converters/power";
 import { speedResults } from "./converters/speed";
 import { numberBaseResults } from "./converters/number-base";
 import { dateTimeResults } from "./converters/date-time";
+import { colorResults } from "./converters/color";
+
+// ---------------------------------------------------------------------------
+// Help content
+// ---------------------------------------------------------------------------
+
+const HELP_SECTIONS = [
+  { category: "Distance", examples: ["5km", "100mi", "3.2ft", "10yd"] },
+  { category: "Weight", examples: ["72kg", "150lb", "500g", "8oz"] },
+  { category: "Area", examples: ["100m2", "5acres", "2ha", "500sqft"] },
+  { category: "Volume", examples: ["2l", "1gal", "3cup", "500ml"] },
+  { category: "Temperature", examples: ["100f", "0c", "300k"] },
+  { category: "Duration", examples: ["90min", "2.5h", "7d", "1yr"] },
+  { category: "Angle", examples: ["180deg", "3.14rad", "1turn"] },
+  { category: "Energy", examples: ["500cal", "1kwh", "100btu"] },
+  { category: "Frequency", examples: ["440hz", "2.4ghz", "3000rpm"] },
+  { category: "Power", examples: ["100w", "5hp", "1kw"] },
+  { category: "Speed", examples: ["60mph", "100kmh", "10m/s"] },
+  { category: "Number Base", examples: ["0xFF", "0b1010", "42", "255d"] },
+  { category: "Date & Time", examples: ["now", "1700000000", "2024-01-15"] },
+  { category: "Color", examples: ["#ff5533", "rgb(255,85,51)", "hsl(15,100,60)"] },
+];
+
+// ---------------------------------------------------------------------------
+// Dispatcher
+// ---------------------------------------------------------------------------
 
 function conversionSections(text: string): Section[] {
   const sections: Section[] = [];
@@ -51,6 +77,9 @@ function conversionSections(text: string): Section[] {
 
   const bases = numberBaseResults(text);
   if (bases.length > 0) sections.push({ category: "Number Base", results: bases });
+
+  const colors = colorResults(text);
+  if (colors.length > 0) sections.push({ category: "Color", results: colors });
 
   const parsed = parseInput(text);
   if (parsed) {
@@ -81,20 +110,48 @@ function conversionSections(text: string): Section[] {
   return sections;
 }
 
+// ---------------------------------------------------------------------------
+// Command
+// ---------------------------------------------------------------------------
+
 export default function Command() {
   const [text, setText] = useState("");
   const [sections, setSections] = useState<Section[]>([]);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     if (text === "") {
       setSections([]);
       return;
     }
+    setShowHelp(false);
     setSections(conversionSections(text));
   }, [text]);
 
+  const helpAction = (
+    <Action
+      title={showHelp ? "Hide Help" : "Show Help"}
+      shortcut={{ modifiers: ["cmd"], key: "h" }}
+      onAction={() => setShowHelp((v) => !v)}
+    />
+  );
+
+  if (showHelp || text === "") {
+    return (
+      <List onSearchTextChange={setText} searchBarPlaceholder="Convert something... (Cmd+H for help)" throttle>
+        {HELP_SECTIONS.map((section) => (
+          <List.Section key={section.category} title={section.category}>
+            {section.examples.map((example) => (
+              <List.Item key={example} title={example} actions={<ActionPanel>{helpAction}</ActionPanel>} />
+            ))}
+          </List.Section>
+        ))}
+      </List>
+    );
+  }
+
   return (
-    <List onSearchTextChange={setText} searchBarPlaceholder="Convert something... (e.g. 5km, 100f, 72kg)" throttle>
+    <List onSearchTextChange={setText} searchBarPlaceholder="Convert something... (Cmd+H for help)" throttle>
       {sections.map((section) => (
         <List.Section key={section.category} title={section.category}>
           {section.results.map((result, index) => (
@@ -104,6 +161,7 @@ export default function Command() {
               actions={
                 <ActionPanel>
                   <Action.CopyToClipboard title="Copy to Clipboard" content={result.value} />
+                  {helpAction}
                 </ActionPanel>
               }
               accessories={[{ text: result.value }]}

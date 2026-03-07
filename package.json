@@ -20,15 +20,9 @@
       "mode": "view"
     },
     {
-      "name": "subnet-calculator",
-      "title": "Subnet Calculator",
-      "description": "Calculate network details from IP/CIDR notation",
-      "mode": "view"
-    },
-    {
-      "name": "http-status-codes",
-      "title": "HTTP Status Codes",
-      "description": "Search and look up HTTP status codes",
+      "name": "networking",
+      "title": "Networking",
+      "description": "Subnet calculator and HTTP status code reference",
       "mode": "view"
     }
   ],

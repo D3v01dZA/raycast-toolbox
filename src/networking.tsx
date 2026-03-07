@@ -1,4 +1,103 @@
 import { Action, ActionPanel, List } from "@raycast/api";
+import { useEffect, useState } from "react";
+
+// ---------------------------------------------------------------------------
+// Subnet calculator
+// ---------------------------------------------------------------------------
+
+interface SubnetResult {
+  label: string;
+  value: string;
+}
+
+function ipToNum(ip: string): number {
+  const parts = ip.split(".").map(Number);
+  return ((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) >>> 0;
+}
+
+function numToIp(n: number): string {
+  return [(n >>> 24) & 0xff, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff].join(".");
+}
+
+function numToBin(n: number): string {
+  return [24, 16, 8, 0].map((s) => ((n >>> s) & 0xff).toString(2).padStart(8, "0")).join(".");
+}
+
+function maskBitsFromDotted(mask: string): number | null {
+  const n = ipToNum(mask);
+  const inverted = (~n >>> 0) >>> 0;
+  if ((inverted & (inverted + 1)) !== 0) return null;
+  let bits = 0;
+  let v = n;
+  while (v) {
+    bits += v & 1;
+    v >>>= 1;
+  }
+  return bits;
+}
+
+function ipClass(firstOctet: number): string {
+  if (firstOctet < 128) return "A";
+  if (firstOctet < 192) return "B";
+  if (firstOctet < 224) return "C";
+  if (firstOctet < 240) return "D (Multicast)";
+  return "E (Reserved)";
+}
+
+function parseSubnetInput(text: string): { ip: number; cidr: number } | null {
+  const t = text.trim();
+
+  const cidrMatch = t.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/(\d{1,2})$/);
+  if (cidrMatch) {
+    const cidr = parseInt(cidrMatch[2]);
+    if (cidr > 32) return null;
+    return { ip: ipToNum(cidrMatch[1]), cidr };
+  }
+
+  const maskMatch = t.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (maskMatch) {
+    const bits = maskBitsFromDotted(maskMatch[2]);
+    if (bits === null) return null;
+    return { ip: ipToNum(maskMatch[1]), cidr: bits };
+  }
+
+  const plainMatch = t.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (plainMatch) {
+    return { ip: ipToNum(plainMatch[1]), cidr: 32 };
+  }
+
+  return null;
+}
+
+function calculateSubnet(ip: number, cidr: number): SubnetResult[] {
+  const mask = cidr === 0 ? 0 : (0xffffffff << (32 - cidr)) >>> 0;
+  const wildcard = (~mask >>> 0) >>> 0;
+  const network = (ip & mask) >>> 0;
+  const broadcast = (network | wildcard) >>> 0;
+  const totalHosts = Math.pow(2, 32 - cidr);
+  const usableHosts = cidr >= 31 ? totalHosts : totalHosts - 2;
+  const firstHost = cidr >= 31 ? network : (network + 1) >>> 0;
+  const lastHost = cidr >= 31 ? broadcast : (broadcast - 1) >>> 0;
+  const firstOctet = (ip >>> 24) & 0xff;
+
+  return [
+    { label: "Network Address", value: numToIp(network) },
+    { label: "Broadcast Address", value: numToIp(broadcast) },
+    { label: "First Usable Host", value: numToIp(firstHost) },
+    { label: "Last Usable Host", value: numToIp(lastHost) },
+    { label: "Subnet Mask", value: numToIp(mask) },
+    { label: "Wildcard Mask", value: numToIp(wildcard) },
+    { label: "CIDR Notation", value: "/" + cidr },
+    { label: "Total Addresses", value: totalHosts.toLocaleString() },
+    { label: "Usable Hosts", value: usableHosts.toLocaleString() },
+    { label: "IP Class", value: ipClass(firstOctet) },
+    { label: "Binary Subnet Mask", value: numToBin(mask) },
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// HTTP status codes
+// ---------------------------------------------------------------------------
 
 interface StatusCode {
   code: number;
@@ -275,27 +374,78 @@ const STATUS_CODES: Category[] = [
   },
 ];
 
+// ---------------------------------------------------------------------------
+// Command
+// ---------------------------------------------------------------------------
+
 export default function Command() {
+  const [text, setText] = useState("");
+  const [subnetResults, setSubnetResults] = useState<SubnetResult[]>([]);
+
+  useEffect(() => {
+    if (text === "") {
+      setSubnetResults([]);
+      return;
+    }
+    const parsed = parseSubnetInput(text);
+    setSubnetResults(parsed ? calculateSubnet(parsed.ip, parsed.cidr) : []);
+  }, [text]);
+
+  const showSubnet = subnetResults.length > 0;
+  const query = text.toLowerCase();
+
   return (
-    <List searchBarPlaceholder="Search HTTP status codes..." throttle>
-      {STATUS_CODES.map((category) => (
-        <List.Section key={category.name} title={category.name}>
-          {category.codes.map((status) => (
+    <List
+      onSearchTextChange={setText}
+      searchBarPlaceholder="IP/CIDR for subnet calc, or search HTTP status codes..."
+      throttle
+    >
+      {showSubnet ? (
+        <List.Section title="Subnet">
+          {subnetResults.map((result) => (
             <List.Item
-              key={status.code}
-              title={`${status.code} ${status.title}`}
-              subtitle={status.description}
+              key={result.label}
+              title={result.label}
+              accessories={[{ text: result.value }]}
               actions={
                 <ActionPanel>
-                  <Action.CopyToClipboard title="Copy Status Code" content={String(status.code)} />
-                  <Action.CopyToClipboard title="Copy Title" content={status.title} />
-                  <Action.CopyToClipboard title="Copy Description" content={status.description} />
+                  <Action.CopyToClipboard title="Copy to Clipboard" content={result.value} />
                 </ActionPanel>
               }
             />
           ))}
         </List.Section>
-      ))}
+      ) : (
+        STATUS_CODES.map((category) => {
+          const filtered = text
+            ? category.codes.filter(
+                (s) =>
+                  String(s.code).includes(query) ||
+                  s.title.toLowerCase().includes(query) ||
+                  s.description.toLowerCase().includes(query),
+              )
+            : category.codes;
+          if (filtered.length === 0) return null;
+          return (
+            <List.Section key={category.name} title={category.name}>
+              {filtered.map((status) => (
+                <List.Item
+                  key={status.code}
+                  title={`${status.code} ${status.title}`}
+                  subtitle={status.description}
+                  actions={
+                    <ActionPanel>
+                      <Action.CopyToClipboard title="Copy Status Code" content={String(status.code)} />
+                      <Action.CopyToClipboard title="Copy Title" content={status.title} />
+                      <Action.CopyToClipboard title="Copy Description" content={status.description} />
+                    </ActionPanel>
+                  }
+                />
+              ))}
+            </List.Section>
+          );
+        })
+      )}
     </List>
   );
 }
