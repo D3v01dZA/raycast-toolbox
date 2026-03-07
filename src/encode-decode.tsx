@@ -1,6 +1,6 @@
 import { Action, ActionPanel, List } from "@raycast/api";
 import { useState } from "react";
-import { parse, ParseError, printParseErrorCode } from "jsonc-parser";
+import { parse, type ParseError } from "jsonc-parser";
 
 // ---------------------------------------------------------------------------
 // Base64
@@ -409,8 +409,7 @@ function JSONFormatView() {
   const errors: ParseError[] = [];
   const parsed = parse(text, errors, { allowTrailingComma: true });
 
-  if (errors.length > 0 && parsed === undefined) {
-    const errorMsg = errors.map((e) => printParseErrorCode(e.error)).join(", ");
+  if (parsed === undefined || errors.length > 0) {
     return (
       <List
         navigationTitle="JSON Format"
@@ -418,7 +417,7 @@ function JSONFormatView() {
         searchBarPlaceholder="Paste JSON or JSONC (comments + trailing commas)..."
         throttle
       >
-        <List.Item title="Invalid JSON" accessories={[{ text: errorMsg }]} />
+        <List.Item title="Invalid JSON" accessories={[{ text: `${errors.length} error(s) found` }]} />
       </List>
     );
   }
