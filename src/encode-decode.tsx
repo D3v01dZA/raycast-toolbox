@@ -1,5 +1,6 @@
 import { Action, ActionPanel, List } from "@raycast/api";
 import { useState } from "react";
+import { parse, ParseError, printParseErrorCode } from "jsonc-parser";
 
 // ---------------------------------------------------------------------------
 // Base64
@@ -394,36 +395,44 @@ function JSONFormatView() {
   const [text, setText] = useState("");
   if (!text) {
     return (
-      <List navigationTitle="JSON Format" onSearchTextChange={setText} searchBarPlaceholder="Paste JSON..." throttle>
-        <List.EmptyView title="Paste JSON to format and validate" />
+      <List
+        navigationTitle="JSON Format"
+        onSearchTextChange={setText}
+        searchBarPlaceholder="Paste JSON or JSONC (comments + trailing commas)..."
+        throttle
+      >
+        <List.EmptyView title="Paste JSON or JSONC to format and validate" />
       </List>
     );
   }
 
-  let formatted: string;
-  let minified: string;
-  let error: string | null = null;
+  const errors: ParseError[] = [];
+  const parsed = parse(text, errors, { allowTrailingComma: true });
 
-  try {
-    const parsed = JSON.parse(text);
-    formatted = JSON.stringify(parsed, null, 2);
-    minified = JSON.stringify(parsed);
-  } catch (e) {
-    formatted = "";
-    minified = "";
-    error = e instanceof Error ? e.message : "Invalid JSON";
-  }
-
-  if (error) {
+  if (errors.length > 0 && parsed === undefined) {
+    const errorMsg = errors.map((e) => printParseErrorCode(e.error)).join(", ");
     return (
-      <List navigationTitle="JSON Format" onSearchTextChange={setText} searchBarPlaceholder="Paste JSON..." throttle>
-        <List.Item title="Invalid JSON" accessories={[{ text: error }]} />
+      <List
+        navigationTitle="JSON Format"
+        onSearchTextChange={setText}
+        searchBarPlaceholder="Paste JSON or JSONC (comments + trailing commas)..."
+        throttle
+      >
+        <List.Item title="Invalid JSON" accessories={[{ text: errorMsg }]} />
       </List>
     );
   }
+
+  const formatted = JSON.stringify(parsed, null, 2);
+  const minified = JSON.stringify(parsed);
 
   return (
-    <List navigationTitle="JSON Format" onSearchTextChange={setText} searchBarPlaceholder="Paste JSON..." throttle>
+    <List
+      navigationTitle="JSON Format"
+      onSearchTextChange={setText}
+      searchBarPlaceholder="Paste JSON or JSONC (comments + trailing commas)..."
+      throttle
+    >
       <List.Item
         title="Formatted"
         subtitle={`${formatted.length} characters`}
@@ -841,32 +850,50 @@ function CurlConverterView() {
 // Slug
 // ---------------------------------------------------------------------------
 
-function slugify(text: string): string {
+function slugify(text: string, separator: string): string {
   return text
     .toLowerCase()
     .trim()
     .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/[\s_-]+/g, separator)
+    .replace(
+      new RegExp(
+        `^${separator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}|${separator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+        "g",
+      ),
+      "",
+    );
 }
+
+const SLUG_SEPARATORS = [
+  { label: "hyphen", separator: "-" },
+  { label: "underscore", separator: "_" },
+  { label: "dot", separator: "." },
+];
 
 function SlugView() {
   const [text, setText] = useState("");
-  const slug = text ? slugify(text) : "";
+
+  const slugs = text
+    ? SLUG_SEPARATORS.map((s) => ({ label: `Slug (${s.label})`, value: slugify(text, s.separator) })).filter(
+        (s) => s.value.length > 0,
+      )
+    : [];
 
   return (
     <List navigationTitle="Slug" onSearchTextChange={setText} searchBarPlaceholder="Enter text to slugify..." throttle>
-      {slug && (
+      {slugs.map((s) => (
         <List.Item
-          title={slug}
+          key={s.label}
+          title={s.label}
+          accessories={[{ text: s.value }]}
           actions={
             <ActionPanel>
-              <Action.CopyToClipboard title="Copy to Clipboard" content={slug} />
+              <Action.CopyToClipboard title="Copy to Clipboard" content={s.value} />
             </ActionPanel>
           }
         />
-      )}
+      ))}
     </List>
   );
 }
