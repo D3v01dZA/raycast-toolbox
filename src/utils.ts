@@ -1,6 +1,7 @@
 export function fmt(n: number): string {
   if (!isFinite(n)) return "∞";
-  return parseFloat(n.toPrecision(6)).toString();
+  const rounded = parseFloat(n.toPrecision(6));
+  return rounded.toLocaleString("en-US", { useGrouping: false, maximumSignificantDigits: 6 });
 }
 
 export function parseInput(text: string): { value: number; rawUnit: string } | null {

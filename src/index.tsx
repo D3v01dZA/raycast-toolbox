@@ -13,6 +13,7 @@ import {
   FrequencyUnit,
   PowerUnit,
   SpeedUnit,
+  StorageUnit,
 } from "./types";
 import { parseInput } from "./utils";
 import {
@@ -28,6 +29,7 @@ import {
   FREQUENCY_UNITS,
   POWER_UNITS,
   SPEED_UNITS,
+  STORAGE_UNITS,
 } from "./aliases";
 import { distanceResults } from "./converters/distance";
 import { weightResults } from "./converters/weight";
@@ -40,6 +42,7 @@ import { energyResults } from "./converters/energy";
 import { frequencyResults } from "./converters/frequency";
 import { powerResults } from "./converters/power";
 import { speedResults } from "./converters/speed";
+import { storageResults } from "./converters/storage";
 import { numberBaseResults } from "./converters/number-base";
 import { dateTimeResults } from "./converters/date-time";
 import { colorResults } from "./converters/color";
@@ -60,6 +63,7 @@ const HELP_SECTIONS = [
   { category: "Frequency", examples: ["440hz", "2.4ghz", "3000rpm"] },
   { category: "Power", examples: ["100w", "5hp", "1kw"] },
   { category: "Speed", examples: ["60mph", "100kmh", "10m/s"] },
+  { category: "Storage", examples: ["500mb", "1gb", "2tib", "1024kib"] },
   { category: "Number Base", examples: ["0xFF", "0b1010", "42", "255d"] },
   { category: "Date & Time", examples: ["now", "1700000000", "2024-01-15"] },
   { category: "Color", examples: ["#ff5533", "rgb(255,85,51)", "hsl(15,100,60)"] },
@@ -104,6 +108,8 @@ function conversionSections(text: string): Section[] {
       if (FREQUENCY_UNITS.has(unit))
         sections.push({ category: "Frequency", results: frequencyResults(value, unit as FrequencyUnit) });
       if (POWER_UNITS.has(unit)) sections.push({ category: "Power", results: powerResults(value, unit as PowerUnit) });
+      if (STORAGE_UNITS.has(unit))
+        sections.push({ category: "Storage", results: storageResults(value, unit as StorageUnit) });
     }
   }
 

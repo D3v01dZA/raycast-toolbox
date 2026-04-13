@@ -276,6 +276,41 @@ export const UNIT_ALIASES: Record<string, AnyUnit> = {
   fps: "fts",
   "foot per second": "fts",
   "feet per second": "fts",
+
+  // Storage
+  b: "b",
+  byte: "b",
+  bytes: "b",
+  kb: "kb",
+  kilobyte: "kb",
+  kilobytes: "kb",
+  mb: "mb",
+  megabyte: "mb",
+  megabytes: "mb",
+  gb: "gb",
+  gigabyte: "gb",
+  gigabytes: "gb",
+  tb: "tb",
+  terabyte: "tb",
+  terabytes: "tb",
+  pb: "pb",
+  petabyte: "pb",
+  petabytes: "pb",
+  kib: "kib",
+  kibibyte: "kib",
+  kibibytes: "kib",
+  mib: "mib",
+  mebibyte: "mib",
+  mebibytes: "mib",
+  gib: "gib",
+  gibibyte: "gib",
+  gibibytes: "gib",
+  tib: "tib",
+  tebibyte: "tib",
+  tebibytes: "tib",
+  pib: "pib",
+  pebibyte: "pib",
+  pebibytes: "pib",
 };
 
 export function normalizeUnit(raw: string): AnyUnit | null {
@@ -293,3 +328,4 @@ export const ENERGY_UNITS = new Set<AnyUnit>(["j", "kj", "cal", "kcal", "wh", "k
 export const FREQUENCY_UNITS = new Set<AnyUnit>(["hz", "khz", "mhz", "ghz", "rpm"]);
 export const POWER_UNITS = new Set<AnyUnit>(["w", "kw", "mw", "hp", "btuhr"]);
 export const SPEED_UNITS = new Set<AnyUnit>(["ms", "kmh", "mph", "knot", "fts"]);
+export const STORAGE_UNITS = new Set<AnyUnit>(["b", "kb", "mb", "gb", "tb", "pb", "kib", "mib", "gib", "tib", "pib"]);

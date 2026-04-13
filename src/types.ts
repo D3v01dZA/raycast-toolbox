@@ -19,6 +19,7 @@ export type EnergyUnit = "j" | "kj" | "cal" | "kcal" | "wh" | "kwh" | "ev" | "bt
 export type FrequencyUnit = "hz" | "khz" | "mhz" | "ghz" | "rpm";
 export type PowerUnit = "w" | "kw" | "mw" | "hp" | "btuhr";
 export type SpeedUnit = "ms" | "kmh" | "mph" | "knot" | "fts";
+export type StorageUnit = "b" | "kb" | "mb" | "gb" | "tb" | "pb" | "kib" | "mib" | "gib" | "tib" | "pib";
 
 export type AnyUnit =
   | DistanceUnit
@@ -31,4 +32,5 @@ export type AnyUnit =
   | EnergyUnit
   | FrequencyUnit
   | PowerUnit
-  | SpeedUnit;
+  | SpeedUnit
+  | StorageUnit;
