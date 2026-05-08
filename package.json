@@ -36,6 +36,12 @@
       "title": "Encode/Decode/Format",
       "description": "Base64, URL, HTML, JWT, case conversion, slug, JSON, and more",
       "mode": "view"
+    },
+    {
+      "name": "which-key",
+      "title": "Which Key",
+      "description": "Keyboard shortcut reference with fuzzy search",
+      "mode": "view"
     }
   ],
   "dependencies": {
