@@ -201,29 +201,15 @@ function fuzzyMatch(query: string, text: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Command
+// App shortcuts view (pushed into from the top-level list)
 // ---------------------------------------------------------------------------
 
-export default function Command() {
+function AppShortcuts({ app }: { app: App }) {
   const [text, setText] = useState("");
-  const [selectedApp, setSelectedApp] = useState(APPS[0].name);
-
-  const app = APPS.find((a) => a.name === selectedApp) ?? APPS[0];
   const query = text.trim();
 
   return (
-    <List
-      onSearchTextChange={setText}
-      searchBarPlaceholder="Search shortcuts..."
-      throttle
-      searchBarAccessory={
-        <List.Dropdown tooltip="Application" onChange={setSelectedApp}>
-          {APPS.map((a) => (
-            <List.Dropdown.Item key={a.name} title={a.name} value={a.name} />
-          ))}
-        </List.Dropdown>
-      }
-    >
+    <List onSearchTextChange={setText} searchBarPlaceholder={`Search ${app.name} shortcuts...`} throttle>
       {app.categories.map((category) => {
         const filtered = query
           ? category.shortcuts.filter((s) => fuzzyMatch(query, s.description) || fuzzyMatch(query, s.keys))
@@ -248,6 +234,29 @@ export default function Command() {
           </List.Section>
         );
       })}
+    </List>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Command
+// ---------------------------------------------------------------------------
+
+export default function Command() {
+  return (
+    <List searchBarPlaceholder="Search applications...">
+      {APPS.map((app) => (
+        <List.Item
+          key={app.name}
+          title={app.name}
+          subtitle={`${app.categories.reduce((n, c) => n + c.shortcuts.length, 0)} shortcuts`}
+          actions={
+            <ActionPanel>
+              <Action.Push title="Browse Shortcuts" target={<AppShortcuts app={app} />} />
+            </ActionPanel>
+          }
+        />
+      ))}
     </List>
   );
 }
