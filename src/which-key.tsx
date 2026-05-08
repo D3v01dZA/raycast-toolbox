@@ -158,9 +158,7 @@ export default function Command() {
     >
       {app.categories.map((category) => {
         const filtered = query
-          ? category.shortcuts.filter(
-              (s) => fuzzyMatch(query, s.description) || fuzzyMatch(query, s.keys),
-            )
+          ? category.shortcuts.filter((s) => fuzzyMatch(query, s.description) || fuzzyMatch(query, s.keys))
           : category.shortcuts;
         if (filtered.length === 0) return null;
         return (
@@ -174,10 +172,7 @@ export default function Command() {
                   <ActionPanel>
                     <Action.CopyToClipboard title="Copy Shortcut" content={shortcut.keys} />
                     <Action.CopyToClipboard title="Copy Description" content={shortcut.description} />
-                    <Action.CopyToClipboard
-                      title="Copy Both"
-                      content={`${shortcut.keys} — ${shortcut.description}`}
-                    />
+                    <Action.CopyToClipboard title="Copy Both" content={`${shortcut.keys} — ${shortcut.description}`} />
                   </ActionPanel>
                 }
               />
