@@ -266,19 +266,28 @@ const TMUX_DEFAULTS: TmuxBinding[] = [
 ];
 
 function loadTmux(): App | null {
-  let content: string;
-  try {
-    content = readFileSync(path.join(homedir(), ".tmux.conf"), "utf-8");
-  } catch {
-    return null;
+  function resolvePath(p: string): string {
+    return p.startsWith("~") ? path.join(homedir(), p.slice(1)) : p;
   }
 
-  // Try to load extras too
-  try {
-    content += "\n" + readFileSync(path.join(homedir(), ".tmux.conf-extras"), "utf-8");
-  } catch {
-    // no extras
+  function readTmuxConfig(filePath: string, seen: Set<string>): string {
+    const resolved = resolvePath(filePath);
+    if (seen.has(resolved)) return "";
+    seen.add(resolved);
+    let text: string;
+    try {
+      text = readFileSync(resolved, "utf-8");
+    } catch {
+      return "";
+    }
+    // Follow source-file directives
+    return text.replace(/^\s*source-file\s+(.+)$/gm, (_, p) => {
+      return "\n" + readTmuxConfig(p.trim(), seen);
+    });
   }
+
+  const content = readTmuxConfig("~/.tmux.conf", new Set());
+  if (!content) return null;
 
   // Parse prefix
   let prefix = "⌃B";
@@ -543,6 +552,95 @@ const STATIC_APPS: App[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Zed keymap parser
+// ---------------------------------------------------------------------------
+
+const ZED_KEY_SYMBOLS: Record<string, string> = {
+  ctrl: "⌃",
+  cmd: "⌘",
+  alt: "⌥",
+  shift: "⇧",
+  space: "Space",
+  enter: "↩",
+  escape: "Esc",
+  backspace: "⌫",
+  tab: "⇥",
+  up: "↑",
+  down: "↓",
+  left: "←",
+  right: "→",
+};
+
+function formatZedKey(raw: string): string {
+  // A key sequence like "space b n" or "ctrl-/" or "g d"
+  return raw
+    .split(" ")
+    .map((chord) => {
+      const parts = chord.split("-");
+      return parts.map((p) => ZED_KEY_SYMBOLS[p] ?? p.toUpperCase()).join("");
+    })
+    .join(" ");
+}
+
+function formatZedAction(action: string): string {
+  // "pane::ActivateNextItem" → "Activate Next Item"
+  const name = action.includes("::") ? action.split("::")[1] : action;
+  return name.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
+}
+
+function friendlyContext(ctx: string): string {
+  if (ctx.includes("ProjectPanel")) return "File Explorer";
+  if (ctx.includes("vim_mode == normal")) return "Vim Normal";
+  if (ctx.includes("vim_mode == visual")) return "Vim Visual";
+  if (ctx.includes("vim_mode == insert")) return "Vim Insert";
+  if (ctx.includes("VimControl") || ctx.includes("!Editor")) return "General";
+  if (ctx === "Workspace") return "Workspace";
+  return ctx;
+}
+
+function loadZed(): App | null {
+  let raw: string;
+  try {
+    raw = readFileSync(path.join(homedir(), ".config/zed/keymap.json"), "utf-8");
+  } catch {
+    return null;
+  }
+
+  // Strip JSONC comments
+  const stripped = raw.replace(/\/\/.*$/gm, "").replace(/,\s*([}\]])/g, "$1");
+  let entries: { context?: string; bindings?: Record<string, string> }[];
+  try {
+    entries = JSON.parse(stripped);
+  } catch {
+    return null;
+  }
+
+  const categories: ShortcutCategory[] = [];
+  // Deduplicate: later contexts can rebind the same key, and multiple keys can map to the same action.
+  // Group by friendly context name, merging entries with the same context.
+  const contextMap = new Map<string, Shortcut[]>();
+
+  for (const entry of entries) {
+    if (!entry.bindings) continue;
+    const ctx = friendlyContext(entry.context ?? "Global");
+    if (!contextMap.has(ctx)) contextMap.set(ctx, []);
+    const shortcuts = contextMap.get(ctx)!;
+    for (const [key, action] of Object.entries(entry.bindings)) {
+      shortcuts.push({
+        keys: formatZedKey(key),
+        description: formatZedAction(action),
+      });
+    }
+  }
+
+  for (const [ctx, shortcuts] of contextMap) {
+    if (shortcuts.length > 0) categories.push({ name: ctx, shortcuts });
+  }
+
+  return categories.length > 0 ? { name: "Zed", categories } : null;
+}
+
+// ---------------------------------------------------------------------------
 // Load all apps (static + dynamic from config files)
 // ---------------------------------------------------------------------------
 
@@ -552,6 +650,8 @@ function loadApps(): App[] {
   if (aero) apps.push(aero);
   const tmux = loadTmux();
   if (tmux) apps.push(tmux);
+  const zed = loadZed();
+  if (zed) apps.push(zed);
   return apps;
 }
 
