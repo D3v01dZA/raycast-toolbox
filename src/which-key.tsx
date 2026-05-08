@@ -1,4 +1,7 @@
 import { Action, ActionPanel, List } from "@raycast/api";
+import { readFileSync } from "fs";
+import { homedir } from "os";
+import path from "path";
 import { useState } from "react";
 
 // ---------------------------------------------------------------------------
@@ -21,10 +24,363 @@ interface App {
 }
 
 // ---------------------------------------------------------------------------
-// Shortcut data
+// AeroSpace config parser
 // ---------------------------------------------------------------------------
 
-const APPS: App[] = [
+const AERO_KEY_SYMBOLS: Record<string, string> = {
+  alt: "⌥",
+  cmd: "⌘",
+  ctrl: "⌃",
+  shift: "⇧",
+  left: "←",
+  right: "→",
+  up: "↑",
+  down: "↓",
+  enter: "↩",
+  space: "Space",
+  tab: "⇥",
+  backspace: "⌫",
+  esc: "Esc",
+  minus: "-",
+  equal: "=",
+  period: ".",
+  comma: ",",
+  slash: "/",
+  backslash: "\\",
+  quote: "'",
+  semicolon: ";",
+  backtick: "`",
+  leftSquareBracket: "[",
+  rightSquareBracket: "]",
+};
+
+function formatAeroKey(raw: string): string {
+  const parts = raw.split("-");
+  const modifiers: string[] = [];
+  const keys: string[] = [];
+  for (const p of parts) {
+    if (p === "alt" || p === "cmd" || p === "ctrl" || p === "shift") {
+      modifiers.push(AERO_KEY_SYMBOLS[p]);
+    } else {
+      keys.push(AERO_KEY_SYMBOLS[p] ?? p.toUpperCase());
+    }
+  }
+  return modifiers.join("") + keys.join("");
+}
+
+function formatAeroCommand(raw: string): string {
+  const cmd = raw.replace(/^'|'$/g, "").trim();
+  return cmd;
+}
+
+function loadAeroSpace(): App | null {
+  let content: string;
+  try {
+    content = readFileSync(path.join(homedir(), ".aerospace.toml"), "utf-8");
+  } catch {
+    return null;
+  }
+
+  // Parse workspace app assignments: [[on-window-detected]] blocks
+  const workspaceApps: Record<string, string[]> = {};
+  const appIdNames: Record<string, string> = {
+    "com.github.wez.wezterm": "WezTerm",
+    "com.jetbrains.intellij.ce": "IntelliJ CE",
+    "com.jetbrains.intellij": "IntelliJ",
+    "com.jetbrains.cwm.guest": "JetBrains Gateway",
+    "dev.zed.Zed": "Zed",
+    "com.apple.dt.Xcode": "Xcode",
+    "com.apple.Safari": "Safari",
+    "org.mozilla.firefox": "Firefox",
+    "com.brave.Browser": "Brave",
+    "com.google.Chrome": "Chrome",
+    "com.ranchero.NetNewsWire-Evergreen": "NetNewsWire",
+    "com.amazon.Amazon-Chime": "Chime",
+    "us.zoom.xos": "Zoom",
+    "com.apple.iCal": "Calendar",
+    "com.apple.reminders": "Reminders",
+    "com.apple.Notes": "Notes",
+    "com.hahainteractive.GoodTask3Mac": "GoodTask",
+    "com.apple.mail": "Mail",
+    "com.microsoft.Outlook": "Outlook",
+    "com.tinyspeck.slackmacgap": "Slack",
+    "net.whatsapp.WhatsApp": "WhatsApp",
+    "com.apple.MobileSMS": "Messages",
+    "com.apple.finder": "Finder",
+    "com.markmcguill.strongbox.pro": "Strongbox",
+    "eu.exelban.Stats": "Stats",
+    "com.apple.systempreferences": "System Settings",
+    "com.raycast.macos": "Raycast",
+    "com.cisco.secureclient.gui": "Cisco Secure Client",
+    "com.nextcloud.desktopclient": "Nextcloud",
+  };
+
+  // Parse [[on-window-detected]] blocks for workspace assignments
+  const blocks = content.split("[[on-window-detected]]").slice(1);
+  for (const block of blocks) {
+    const appMatch = block.match(/if\.app-id\s*=\s*'([^']+)'/);
+    const wsMatch = block.match(/move-node-to-workspace\s+(\S+)/);
+    if (appMatch && wsMatch) {
+      const appName = appIdNames[appMatch[1]] ?? appMatch[1].split(".").pop() ?? appMatch[1];
+      const ws = wsMatch[1].replace(/['"]/g, "");
+      if (!workspaceApps[ws]) workspaceApps[ws] = [];
+      workspaceApps[ws].push(appName);
+    }
+  }
+
+  // Parse binding modes
+  const modes: Record<string, Shortcut[]> = {};
+  const modeRegex = /\[mode\.(\w+)\.binding\]/g;
+  let modeMatch;
+  const modeStarts: { name: string; index: number }[] = [];
+  while ((modeMatch = modeRegex.exec(content))) {
+    modeStarts.push({ name: modeMatch[1], index: modeMatch.index });
+  }
+
+  for (let i = 0; i < modeStarts.length; i++) {
+    const start = modeStarts[i].index;
+    const end = i + 1 < modeStarts.length ? modeStarts[i + 1].index : content.indexOf("[[on-window-detected]]");
+    const section = content.slice(start, end === -1 ? undefined : end);
+    const shortcuts: Shortcut[] = [];
+
+    for (const line of section.split("\n")) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("#") || trimmed.startsWith("[") || !trimmed.includes("=")) continue;
+      const eqIdx = trimmed.indexOf("=");
+      const key = trimmed.slice(0, eqIdx).trim();
+      const val = trimmed.slice(eqIdx + 1).trim();
+
+      if (!key || key.includes(".")) continue;
+
+      const formatted = formatAeroKey(key);
+      let description: string;
+      if (val.startsWith("[")) {
+        const cmds = val
+          .replace(/^\[|\]$/g, "")
+          .split(",")
+          .map((c) => formatAeroCommand(c.trim()));
+        description = cmds.join(", ");
+      } else {
+        description = formatAeroCommand(val);
+      }
+
+      // Annotate workspace commands with assigned apps
+      const wsMatch = description.match(/^workspace (\S+)$/);
+      if (wsMatch && workspaceApps[wsMatch[1]]) {
+        description += ` (${workspaceApps[wsMatch[1]].join(", ")})`;
+      }
+
+      shortcuts.push({ keys: formatted, description });
+    }
+
+    modes[modeStarts[i].name] = shortcuts;
+  }
+
+  const categories: ShortcutCategory[] = [];
+  for (const [mode, shortcuts] of Object.entries(modes)) {
+    if (shortcuts.length > 0) {
+      const prefix = mode === "main" ? "" : `[${mode}] `;
+      categories.push({ name: `${prefix}${mode.charAt(0).toUpperCase() + mode.slice(1)} Mode`, shortcuts });
+    }
+  }
+
+  return categories.length > 0 ? { name: "AeroSpace", categories } : null;
+}
+
+// ---------------------------------------------------------------------------
+// tmux config parser
+// ---------------------------------------------------------------------------
+
+const TMUX_KEY_NAMES: Record<string, string> = {
+  Space: "Space",
+  Enter: "↩",
+  Escape: "Esc",
+  Tab: "⇥",
+  BSpace: "⌫",
+  Up: "↑",
+  Down: "↓",
+  Left: "←",
+  Right: "→",
+  NPage: "PgDn",
+  PPage: "PgUp",
+};
+
+function formatTmuxKey(prefix: string, key: string): string {
+  return `${prefix} ${TMUX_KEY_NAMES[key] ?? key}`;
+}
+
+interface TmuxBinding {
+  key: string;
+  command: string;
+  description: string;
+}
+
+const TMUX_DEFAULTS: TmuxBinding[] = [
+  // Session
+  { key: "d", command: "detach-client", description: "Detach from session" },
+  { key: "s", command: "choose-tree -s", description: "List sessions" },
+  { key: "$", command: "command-prompt -I rename-session", description: "Rename session" },
+  { key: "(", command: "switch-client -p", description: "Previous session" },
+  { key: ")", command: "switch-client -n", description: "Next session" },
+  { key: "L", command: "switch-client -l", description: "Last session" },
+  // Window
+  { key: "c", command: "new-window", description: "New window" },
+  { key: ",", command: "command-prompt -I rename-window", description: "Rename window" },
+  { key: "w", command: "choose-tree -w", description: "List windows" },
+  { key: "n", command: "next-window", description: "Next window" },
+  { key: "p", command: "previous-window", description: "Previous window" },
+  { key: "l", command: "last-window", description: "Last window" },
+  { key: "&", command: "kill-window", description: "Kill window" },
+  { key: "f", command: "command-prompt find-window", description: "Find window" },
+  { key: ".", command: "command-prompt move-window", description: "Move window" },
+  { key: "0", command: "select-window -t :0", description: "Select window 0" },
+  { key: "1", command: "select-window -t :1", description: "Select window 1" },
+  { key: "2", command: "select-window -t :2", description: "Select window 2" },
+  { key: "3", command: "select-window -t :3", description: "Select window 3" },
+  { key: "4", command: "select-window -t :4", description: "Select window 4" },
+  { key: "5", command: "select-window -t :5", description: "Select window 5" },
+  { key: "6", command: "select-window -t :6", description: "Select window 6" },
+  { key: "7", command: "select-window -t :7", description: "Select window 7" },
+  { key: "8", command: "select-window -t :8", description: "Select window 8" },
+  { key: "9", command: "select-window -t :9", description: "Select window 9" },
+  // Pane
+  { key: '"', command: "split-window", description: "Split pane vertically" },
+  { key: "%", command: "split-window -h", description: "Split pane horizontally" },
+  { key: "x", command: "kill-pane", description: "Kill pane" },
+  { key: "z", command: "resize-pane -Z", description: "Toggle pane zoom" },
+  { key: "o", command: "select-pane -t :.+", description: "Next pane" },
+  { key: ";", command: "last-pane", description: "Last pane" },
+  { key: "q", command: "display-panes", description: "Show pane numbers" },
+  { key: "{", command: "swap-pane -U", description: "Swap pane up" },
+  { key: "}", command: "swap-pane -D", description: "Swap pane down" },
+  { key: "!", command: "break-pane", description: "Break pane to window" },
+  { key: "Space", command: "next-layout", description: "Cycle layouts" },
+  // Copy & misc
+  { key: "[", command: "copy-mode", description: "Enter copy mode" },
+  { key: "]", command: "paste-buffer", description: "Paste buffer" },
+  { key: ":", command: "command-prompt", description: "Command prompt" },
+  { key: "?", command: "list-keys", description: "List keybindings" },
+  { key: "t", command: "clock-mode", description: "Show clock" },
+  { key: "i", command: "display-message", description: "Display info" },
+  { key: "~", command: "show-messages", description: "Show messages" },
+];
+
+function loadTmux(): App | null {
+  let content: string;
+  try {
+    content = readFileSync(path.join(homedir(), ".tmux.conf"), "utf-8");
+  } catch {
+    return null;
+  }
+
+  // Try to load extras too
+  try {
+    content += "\n" + readFileSync(path.join(homedir(), ".tmux.conf-extras"), "utf-8");
+  } catch {
+    // no extras
+  }
+
+  // Parse prefix
+  let prefix = "⌃B";
+  const prefixMatch = content.match(/set\s+-g\s+prefix\s+(\S+)/);
+  if (prefixMatch) {
+    const raw = prefixMatch[1];
+    if (raw === "C-space") prefix = "⌃Space";
+    else if (raw === "C-a") prefix = "⌃A";
+    else if (raw.startsWith("C-")) prefix = "⌃" + raw.slice(2).toUpperCase();
+    else prefix = raw;
+  }
+
+  // Parse custom bindings
+  const customKeys = new Map<string, { key: string; description: string }>();
+  const bindRegex = /^\s*bind(?:-key)?\s+(?:-[rn]\s+)*(?:-T\s+\S+\s+)?["']?([^\s"']+)["']?\s+(.+)$/gm;
+  let match;
+  while ((match = bindRegex.exec(content))) {
+    const key = match[1];
+    const cmd = match[2]
+      .trim()
+      .replace(/-c\s+"[^"]*"\s*/, "")
+      .replace(/-c\s+'[^']*'\s*/, "");
+    let description = cmd;
+    if (cmd.startsWith("split-window -v")) description = "Split pane vertically";
+    else if (cmd.startsWith("split-window -h")) description = "Split pane horizontally";
+    else if (cmd.startsWith("new-window")) description = "New window";
+    else if (cmd.startsWith("send-prefix")) description = "Send prefix";
+    customKeys.set(key, { key, description });
+  }
+
+  // Merge: custom overrides defaults
+  const sessionShortcuts: Shortcut[] = [];
+  const windowShortcuts: Shortcut[] = [];
+  const paneShortcuts: Shortcut[] = [];
+  const miscShortcuts: Shortcut[] = [];
+
+  const sessionCmds = new Set(["detach-client", "choose-tree -s", "rename-session", "switch-client"]);
+  const windowCmds = new Set([
+    "new-window",
+    "rename-window",
+    "choose-tree -w",
+    "next-window",
+    "previous-window",
+    "last-window",
+    "kill-window",
+    "find-window",
+    "move-window",
+    "select-window",
+  ]);
+  const paneCmds = new Set([
+    "split-window",
+    "kill-pane",
+    "resize-pane",
+    "select-pane",
+    "last-pane",
+    "display-panes",
+    "swap-pane",
+    "break-pane",
+    "next-layout",
+  ]);
+
+  function categorize(key: string, description: string, command: string) {
+    const shortcut = { keys: formatTmuxKey(prefix, key), description };
+    const cmdBase = command.split(" ")[0];
+    const cmdFull = command.split(" ").slice(0, 2).join(" ");
+    if (sessionCmds.has(cmdBase) || sessionCmds.has(cmdFull)) sessionShortcuts.push(shortcut);
+    else if (windowCmds.has(cmdBase) || windowCmds.has(cmdFull)) windowShortcuts.push(shortcut);
+    else if (paneCmds.has(cmdBase) || paneCmds.has(cmdFull)) paneShortcuts.push(shortcut);
+    else miscShortcuts.push(shortcut);
+  }
+
+  const processedKeys = new Set<string>();
+
+  // Add custom bindings first
+  for (const [key, binding] of customKeys) {
+    if (key === "C-space" || binding.description === "Send prefix") continue;
+    categorize(key, binding.description, binding.description);
+    processedKeys.add(key);
+  }
+
+  // Add defaults that aren't overridden
+  for (const def of TMUX_DEFAULTS) {
+    if (!processedKeys.has(def.key)) {
+      categorize(def.key, def.description, def.command);
+    }
+  }
+
+  const categories: ShortcutCategory[] = [];
+  if (sessionShortcuts.length > 0)
+    categories.push({ name: `Sessions (prefix: ${prefix})`, shortcuts: sessionShortcuts });
+  if (windowShortcuts.length > 0) categories.push({ name: "Windows", shortcuts: windowShortcuts });
+  if (paneShortcuts.length > 0) categories.push({ name: "Panes", shortcuts: paneShortcuts });
+  if (miscShortcuts.length > 0) categories.push({ name: "Copy & Misc", shortcuts: miscShortcuts });
+
+  return categories.length > 0 ? { name: "tmux", categories } : null;
+}
+
+// ---------------------------------------------------------------------------
+// Static shortcut data
+// ---------------------------------------------------------------------------
+
+const STATIC_APPS: App[] = [
   {
     name: "Chrome",
     categories: [
@@ -185,6 +541,21 @@ const APPS: App[] = [
     ],
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Load all apps (static + dynamic from config files)
+// ---------------------------------------------------------------------------
+
+function loadApps(): App[] {
+  const apps = [...STATIC_APPS];
+  const aero = loadAeroSpace();
+  if (aero) apps.push(aero);
+  const tmux = loadTmux();
+  if (tmux) apps.push(tmux);
+  return apps;
+}
+
+const APPS = loadApps();
 
 // ---------------------------------------------------------------------------
 // Fuzzy matching
