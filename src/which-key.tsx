@@ -552,6 +552,488 @@ const STATIC_APPS: App[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Shared Vim keybinding categories (used by Zed and Neovim)
+// ---------------------------------------------------------------------------
+
+const VIM_CATEGORIES: ShortcutCategory[] = [
+  {
+    name: "Vim: Movement",
+    shortcuts: [
+      { keys: "H", description: "Move left" },
+      { keys: "J", description: "Move down" },
+      { keys: "K", description: "Move up" },
+      { keys: "L", description: "Move right" },
+      { keys: "W", description: "Next word start" },
+      { keys: "B", description: "Previous word start" },
+      { keys: "E", description: "Next word end" },
+      { keys: "G E", description: "Previous word end" },
+      { keys: "W", description: "Next WORD start (whitespace-delimited)" },
+      { keys: "B", description: "Previous WORD start (whitespace-delimited)" },
+      { keys: "E", description: "Next WORD end (whitespace-delimited)" },
+      { keys: "0", description: "Start of line" },
+      { keys: "$", description: "End of line" },
+      { keys: "^", description: "First non-blank character" },
+      { keys: "G _", description: "Last non-blank character" },
+      { keys: "G G", description: "Go to first line" },
+      { keys: "G", description: "Go to last line" },
+      { keys: "{count}G", description: "Go to line {count}" },
+      { keys: "{", description: "Previous blank line / paragraph" },
+      { keys: "}", description: "Next blank line / paragraph" },
+      { keys: "%", description: "Matching bracket" },
+      { keys: "F {char}", description: "Find char forward on line" },
+      { keys: "F {char}", description: "Find char backward on line" },
+      { keys: "T {char}", description: "Till before char forward" },
+      { keys: "T {char}", description: "Till after char backward" },
+      { keys: ";", description: "Repeat last f/F/t/T" },
+      { keys: ",", description: "Repeat last f/F/t/T reversed" },
+      { keys: "⌃D", description: "Half page down" },
+      { keys: "⌃U", description: "Half page up" },
+      { keys: "⌃F", description: "Page down" },
+      { keys: "⌃B", description: "Page up" },
+      { keys: "Z Z", description: "Center cursor line" },
+      { keys: "Z T", description: "Cursor line to top" },
+      { keys: "Z B", description: "Cursor line to bottom" },
+    ],
+  },
+  {
+    name: "Vim: Operators",
+    shortcuts: [
+      { keys: "D", description: "Delete (motion/selection)" },
+      { keys: "C", description: "Change (delete + insert mode)" },
+      { keys: "Y", description: "Yank (copy)" },
+      { keys: ">", description: "Indent right" },
+      { keys: "<", description: "Indent left" },
+      { keys: "G U", description: "Make lowercase" },
+      { keys: "G U", description: "Make uppercase" },
+      { keys: "=", description: "Auto-indent" },
+      { keys: "D D", description: "Delete line" },
+      { keys: "C C", description: "Change line" },
+      { keys: "Y Y", description: "Yank line" },
+      { keys: "D $", description: "Delete to end of line" },
+      { keys: "D 0", description: "Delete to start of line" },
+      { keys: "D", description: "Delete to end of line (shorthand)" },
+      { keys: "C", description: "Change to end of line (shorthand)" },
+      { keys: "Y", description: "Yank to end of line (shorthand)" },
+      { keys: "X", description: "Delete character under cursor" },
+      { keys: "S", description: "Substitute character (delete + insert)" },
+      { keys: "S", description: "Substitute line (delete line + insert)" },
+      { keys: "R {char}", description: "Replace character under cursor" },
+      { keys: "J", description: "Join line below" },
+      { keys: "G J", description: "Join line below (no space)" },
+    ],
+  },
+  {
+    name: "Vim: Text Objects",
+    shortcuts: [
+      { keys: "I W", description: "Inner word" },
+      { keys: "A W", description: "Around word (includes space)" },
+      { keys: "I W", description: "Inner WORD" },
+      { keys: "A W", description: "Around WORD" },
+      { keys: 'I "', description: "Inner double quotes" },
+      { keys: 'A "', description: "Around double quotes" },
+      { keys: "I '", description: "Inner single quotes" },
+      { keys: "A '", description: "Around single quotes" },
+      { keys: "I `", description: "Inner backticks" },
+      { keys: "A `", description: "Around backticks" },
+      { keys: "I (", description: "Inner parentheses" },
+      { keys: "A (", description: "Around parentheses" },
+      { keys: "I {", description: "Inner braces" },
+      { keys: "A {", description: "Around braces" },
+      { keys: "I [", description: "Inner brackets" },
+      { keys: "A [", description: "Around brackets" },
+      { keys: "I <", description: "Inner angle brackets" },
+      { keys: "A <", description: "Around angle brackets" },
+      { keys: "I T", description: "Inner HTML/XML tag" },
+      { keys: "A T", description: "Around HTML/XML tag" },
+      { keys: "I P", description: "Inner paragraph" },
+      { keys: "A P", description: "Around paragraph" },
+      { keys: "I S", description: "Inner sentence" },
+      { keys: "A S", description: "Around sentence" },
+    ],
+  },
+  {
+    name: "Vim: Common Combos",
+    shortcuts: [
+      { keys: "C W", description: "Change word (from cursor)" },
+      { keys: "C I W", description: "Change inner word" },
+      { keys: "C A W", description: "Change word + surrounding space" },
+      { keys: 'C I "', description: "Change inside double quotes" },
+      { keys: "C I '", description: "Change inside single quotes" },
+      { keys: "C I (", description: "Change inside parentheses" },
+      { keys: "C I {", description: "Change inside braces" },
+      { keys: "C I [", description: "Change inside brackets" },
+      { keys: "C I T", description: "Change inside HTML tag" },
+      { keys: "C I P", description: "Change inner paragraph" },
+      { keys: "C F {char}", description: "Change through next {char}" },
+      { keys: "C T {char}", description: "Change until next {char}" },
+      { keys: "C $", description: "Change to end of line" },
+      { keys: "C 0", description: "Change to start of line" },
+      { keys: "C G G", description: "Change to start of file" },
+      { keys: "C G", description: "Change to end of file" },
+      { keys: "D W", description: "Delete word (from cursor)" },
+      { keys: "D I W", description: "Delete inner word" },
+      { keys: "D A W", description: "Delete word + surrounding space" },
+      { keys: 'D I "', description: "Delete inside double quotes" },
+      { keys: "D I '", description: "Delete inside single quotes" },
+      { keys: "D I (", description: "Delete inside parentheses" },
+      { keys: "D I {", description: "Delete inside braces" },
+      { keys: "D I [", description: "Delete inside brackets" },
+      { keys: "D I T", description: "Delete inside HTML tag" },
+      { keys: "D A T", description: "Delete HTML tag and contents" },
+      { keys: "D I P", description: "Delete inner paragraph" },
+      { keys: "D F {char}", description: "Delete through next {char}" },
+      { keys: "D T {char}", description: "Delete until next {char}" },
+      { keys: "D G G", description: "Delete to start of file" },
+      { keys: "D G", description: "Delete to end of file" },
+      { keys: "Y I W", description: "Yank inner word" },
+      { keys: "Y A W", description: "Yank word + surrounding space" },
+      { keys: 'Y I "', description: "Yank inside double quotes" },
+      { keys: "Y I (", description: "Yank inside parentheses" },
+      { keys: "Y I {", description: "Yank inside braces" },
+      { keys: "Y I T", description: "Yank inside HTML tag" },
+      { keys: "Y I P", description: "Yank inner paragraph" },
+      { keys: "Y $", description: "Yank to end of line" },
+      { keys: "Y G G", description: "Yank to start of file" },
+      { keys: "Y G", description: "Yank to end of file" },
+      { keys: "> I {", description: "Indent inside braces" },
+      { keys: "< I {", description: "De-indent inside braces" },
+      { keys: "> I P", description: "Indent paragraph" },
+      { keys: "= I {", description: "Auto-indent inside braces" },
+      { keys: "= I P", description: "Auto-indent paragraph" },
+      { keys: "V I W U", description: "Lowercase word" },
+      { keys: "V I W U", description: "Uppercase word" },
+      { keys: "G U I W", description: "Lowercase word (normal mode)" },
+      { keys: "G U I W", description: "Uppercase word (normal mode)" },
+    ],
+  },
+  {
+    name: "Vim: Insert Mode",
+    shortcuts: [
+      { keys: "I", description: "Insert before cursor" },
+      { keys: "I", description: "Insert at start of line" },
+      { keys: "A", description: "Append after cursor" },
+      { keys: "A", description: "Append at end of line" },
+      { keys: "O", description: "Open line below" },
+      { keys: "O", description: "Open line above" },
+      { keys: "Esc", description: "Exit insert mode" },
+      { keys: "⌃C", description: "Exit insert mode" },
+      { keys: "⌃W", description: "Delete word before cursor" },
+      { keys: "⌃U", description: "Delete to start of line" },
+      { keys: "⌃T", description: "Indent line" },
+      { keys: "⌃D", description: "De-indent line" },
+      { keys: "⌃R {reg}", description: "Insert from register" },
+      { keys: "⌃O", description: "Execute one normal command" },
+    ],
+  },
+  {
+    name: "Vim: Visual Mode",
+    shortcuts: [
+      { keys: "V", description: "Visual character mode" },
+      { keys: "V", description: "Visual line mode" },
+      { keys: "⌃V", description: "Visual block mode" },
+      { keys: "O", description: "Move to other end of selection" },
+      { keys: "G V", description: "Reselect last visual selection" },
+      { keys: "Esc", description: "Exit visual mode" },
+    ],
+  },
+  {
+    name: "Vim: Search & Replace",
+    shortcuts: [
+      { keys: "/", description: "Search forward" },
+      { keys: "?", description: "Search backward" },
+      { keys: "N", description: "Next match" },
+      { keys: "N", description: "Previous match" },
+      { keys: "*", description: "Search word under cursor forward" },
+      { keys: "#", description: "Search word under cursor backward" },
+      { keys: ":s/old/new", description: "Replace first on line" },
+      { keys: ":s/old/new/g", description: "Replace all on line" },
+      { keys: ":%s/old/new/g", description: "Replace all in file" },
+      { keys: ":%s/old/new/gc", description: "Replace all with confirm" },
+    ],
+  },
+  {
+    name: "Vim: Marks & Registers",
+    shortcuts: [
+      { keys: "M {a-z}", description: "Set mark" },
+      { keys: "' {a-z}", description: "Jump to mark (line)" },
+      { keys: "` {a-z}", description: "Jump to mark (exact position)" },
+      { keys: "' '", description: "Jump to last jump position" },
+      { keys: "' .", description: "Jump to last edit position" },
+      { keys: ":marks", description: "List marks" },
+      { keys: '" {a-z} y', description: "Yank into register" },
+      { keys: '" {a-z} p', description: "Paste from register" },
+      { keys: '" +', description: "System clipboard register" },
+      { keys: ":reg", description: "List registers" },
+    ],
+  },
+  {
+    name: "Vim: Undo & Repeat",
+    shortcuts: [
+      { keys: "U", description: "Undo" },
+      { keys: "⌃R", description: "Redo" },
+      { keys: ".", description: "Repeat last change" },
+      { keys: "@:", description: "Repeat last command" },
+    ],
+  },
+  {
+    name: "Vim: Macros",
+    shortcuts: [
+      { keys: "Q {a-z}", description: "Record macro into register" },
+      { keys: "Q", description: "Stop recording macro" },
+      { keys: "@ {a-z}", description: "Play macro from register" },
+      { keys: "@@", description: "Replay last macro" },
+      { keys: "{count}@ {a-z}", description: "Play macro {count} times" },
+    ],
+  },
+  {
+    name: "Vim: Folds",
+    shortcuts: [
+      { keys: "Z O", description: "Open fold" },
+      { keys: "Z C", description: "Close fold" },
+      { keys: "Z A", description: "Toggle fold" },
+      { keys: "Z R", description: "Open all folds" },
+      { keys: "Z M", description: "Close all folds" },
+      { keys: "Z O", description: "Open all folds under cursor" },
+      { keys: "Z C", description: "Close all folds under cursor" },
+    ],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Neovim / LazyVim parser
+// ---------------------------------------------------------------------------
+
+const LAZYVIM_DEFAULTS: ShortcutCategory[] = [
+  {
+    name: "LazyVim: General",
+    shortcuts: [
+      { keys: "Space", description: "Leader key" },
+      { keys: "Space q q", description: "Quit all" },
+      { keys: "Space q w", description: "Save and quit" },
+      { keys: "Space l", description: "Lazy plugin manager" },
+      { keys: "Space L", description: "LazyVim changelog" },
+      { keys: "⌃S", description: "Save file" },
+      { keys: "Space u n", description: "Dismiss notifications" },
+    ],
+  },
+  {
+    name: "LazyVim: Find & Search",
+    shortcuts: [
+      { keys: "Space Space", description: "Find files (root)" },
+      { keys: "Space f f", description: "Find files (root)" },
+      { keys: "Space f F", description: "Find files (cwd)" },
+      { keys: "Space f r", description: "Recent files" },
+      { keys: "Space f R", description: "Recent files (cwd)" },
+      { keys: "Space f n", description: "New file" },
+      { keys: "Space /", description: "Grep (root)" },
+      { keys: "Space s g", description: "Grep (root)" },
+      { keys: "Space s G", description: "Grep (cwd)" },
+      { keys: "Space s w", description: "Search word under cursor (root)" },
+      { keys: "Space s W", description: "Search word under cursor (cwd)" },
+      { keys: "Space s b", description: "Search buffer" },
+      { keys: "Space s k", description: "Search keymaps" },
+      { keys: "Space s h", description: "Search help" },
+      { keys: "Space s m", description: "Search marks" },
+      { keys: "Space s M", description: "Search man pages" },
+      { keys: "Space s o", description: "Search options" },
+      { keys: "Space s R", description: "Search & replace (Spectre)" },
+      { keys: "Space s s", description: "Go to symbol" },
+      { keys: "Space s S", description: "Go to symbol (workspace)" },
+    ],
+  },
+  {
+    name: "LazyVim: Buffers & Windows",
+    shortcuts: [
+      { keys: "Space ,", description: "Switch buffer" },
+      { keys: "Space b b", description: "Switch buffer (alternate)" },
+      { keys: "Space b d", description: "Delete buffer" },
+      { keys: "Space b D", description: "Delete buffer (force)" },
+      { keys: "Space b o", description: "Delete other buffers" },
+      { keys: "Space b p", description: "Toggle pin buffer" },
+      { keys: "Space b P", description: "Delete non-pinned buffers" },
+      { keys: "⇧H", description: "Previous buffer" },
+      { keys: "⇧L", description: "Next buffer" },
+      { keys: "Space -", description: "Split below" },
+      { keys: "Space |", description: "Split right" },
+      { keys: "Space w d", description: "Delete window" },
+      { keys: "Space w w", description: "Other window" },
+      { keys: "⌃H", description: "Go to left window" },
+      { keys: "⌃J", description: "Go to lower window" },
+      { keys: "⌃K", description: "Go to upper window" },
+      { keys: "⌃L", description: "Go to right window" },
+      { keys: "⌃↑", description: "Increase window height" },
+      { keys: "⌃↓", description: "Decrease window height" },
+      { keys: "⌃←", description: "Decrease window width" },
+      { keys: "⌃→", description: "Increase window width" },
+    ],
+  },
+  {
+    name: "LazyVim: Code & LSP",
+    shortcuts: [
+      { keys: "Space c a", description: "Code action" },
+      { keys: "Space c f", description: "Format" },
+      { keys: "Space c r", description: "Rename" },
+      { keys: "Space c d", description: "Line diagnostics" },
+      { keys: "Space c l", description: "Lsp info" },
+      { keys: "Space c o", description: "Organize imports" },
+      { keys: "G D", description: "Go to definition" },
+      { keys: "G R", description: "References" },
+      { keys: "G I", description: "Go to implementation" },
+      { keys: "G Y", description: "Go to type definition" },
+      { keys: "G d", description: "Go to declaration" },
+      { keys: "K", description: "Hover documentation" },
+      { keys: "G K", description: "Signature help" },
+      { keys: "] D", description: "Next diagnostic" },
+      { keys: "[ D", description: "Previous diagnostic" },
+      { keys: "] E", description: "Next error" },
+      { keys: "[ E", description: "Previous error" },
+      { keys: "] W", description: "Next warning" },
+      { keys: "[ W", description: "Previous warning" },
+    ],
+  },
+  {
+    name: "LazyVim: Explorer & UI",
+    shortcuts: [
+      { keys: "Space e", description: "Explorer (root)" },
+      { keys: "Space E", description: "Explorer (cwd)" },
+      { keys: "Space f e", description: "Explorer (root)" },
+      { keys: "Space f E", description: "Explorer (cwd)" },
+      { keys: "Space u c", description: "Toggle conceallevel" },
+      { keys: "Space u d", description: "Toggle diagnostics" },
+      { keys: "Space u f", description: "Toggle autoformat (global)" },
+      { keys: "Space u F", description: "Toggle autoformat (buffer)" },
+      { keys: "Space u h", description: "Toggle inlay hints" },
+      { keys: "Space u i", description: "Inspect treesitter node" },
+      { keys: "Space u l", description: "Toggle line numbers" },
+      { keys: "Space u L", description: "Toggle relative line numbers" },
+      { keys: "Space u s", description: "Toggle spelling" },
+      { keys: "Space u T", description: "Toggle treesitter highlight" },
+      { keys: "Space u w", description: "Toggle word wrap" },
+    ],
+  },
+  {
+    name: "LazyVim: Git",
+    shortcuts: [
+      { keys: "Space g g", description: "Lazygit (root)" },
+      { keys: "Space g G", description: "Lazygit (cwd)" },
+      { keys: "Space g b", description: "Git blame line" },
+      { keys: "Space g B", description: "Git browse" },
+      { keys: "Space g f", description: "Git file history (current)" },
+      { keys: "Space g l", description: "Git log" },
+      { keys: "Space g L", description: "Git log (cwd)" },
+      { keys: "Space g s", description: "Git status" },
+      { keys: "] H", description: "Next hunk" },
+      { keys: "[ H", description: "Previous hunk" },
+      { keys: "Space g h s", description: "Stage hunk" },
+      { keys: "Space g h r", description: "Reset hunk" },
+      { keys: "Space g h S", description: "Stage buffer" },
+      { keys: "Space g h u", description: "Undo stage hunk" },
+      { keys: "Space g h p", description: "Preview hunk" },
+      { keys: "Space g h b", description: "Blame line" },
+      { keys: "Space g h d", description: "Diff this" },
+    ],
+  },
+  {
+    name: "LazyVim: Diagnostics & Quickfix",
+    shortcuts: [
+      { keys: "Space x x", description: "Document diagnostics" },
+      { keys: "Space x X", description: "Workspace diagnostics" },
+      { keys: "Space x L", description: "Location list" },
+      { keys: "Space x Q", description: "Quickfix list" },
+      { keys: "[ Q", description: "Previous quickfix" },
+      { keys: "] Q", description: "Next quickfix" },
+    ],
+  },
+  {
+    name: "LazyVim: Terminal & Tabs",
+    shortcuts: [
+      { keys: "⌃/", description: "Toggle terminal" },
+      { keys: "Space f t", description: "Terminal (root)" },
+      { keys: "Space f T", description: "Terminal (cwd)" },
+      { keys: "Space Tab Tab", description: "New tab" },
+      { keys: "Space Tab d", description: "Close tab" },
+      { keys: "Space Tab ]", description: "Next tab" },
+      { keys: "Space Tab [", description: "Previous tab" },
+      { keys: "Space Tab f", description: "First tab" },
+      { keys: "Space Tab l", description: "Last tab" },
+    ],
+  },
+  {
+    name: "LazyVim: Command & Misc",
+    shortcuts: [
+      { keys: "Space :", description: "Command history" },
+      { keys: "Space n", description: "Notification history" },
+      { keys: "Space f p", description: "Recent projects" },
+      { keys: "⌥J", description: "Move line down" },
+      { keys: "⌥K", description: "Move line up" },
+      { keys: "Space u r", description: "Redraw / clear hlsearch" },
+    ],
+  },
+  {
+    name: "LazyVim: Completion (blink.cmp)",
+    shortcuts: [
+      { keys: "↩", description: "Accept completion" },
+      { keys: "⌃N", description: "Next completion item" },
+      { keys: "⌃P", description: "Previous completion item" },
+      { keys: "⌃B", description: "Scroll docs up" },
+      { keys: "⌃F", description: "Scroll docs down" },
+      { keys: "⌃Space", description: "Trigger completion" },
+      { keys: "⌃E", description: "Dismiss completion" },
+      { keys: "⇥", description: "Next snippet placeholder" },
+      { keys: "⇧⇥", description: "Previous snippet placeholder" },
+    ],
+  },
+];
+
+function loadNeovim(): App | null {
+  // Check that nvim config exists
+  const configDir = path.join(homedir(), ".config/nvim");
+  try {
+    readFileSync(path.join(configDir, "init.lua"), "utf-8");
+  } catch {
+    return null;
+  }
+
+  const categories: ShortcutCategory[] = [];
+
+  // Parse custom keymaps from keymaps.lua
+  try {
+    const keymapsLua = readFileSync(path.join(configDir, "lua/config/keymaps.lua"), "utf-8");
+    const customShortcuts: Shortcut[] = [];
+    // Match: vim.keymap.set("n", "<leader>xx", ..., { desc = "..." })
+    // and: map("n", "<leader>xx", ..., { desc = "..." })
+    const keymapRegex =
+      /(?:vim\.keymap\.set|map)\s*\(\s*["'{]\s*([^"'}\]]+)\s*["'}]\s*,\s*"([^"]+)"\s*,\s*[^,]+,\s*\{[^}]*desc\s*=\s*"([^"]+)"/g;
+    let m;
+    while ((m = keymapRegex.exec(keymapsLua))) {
+      const key = m[2]
+        .replace(/<leader>/gi, "Space ")
+        .replace(/<CR>/gi, "↩")
+        .replace(/<Tab>/gi, "⇥")
+        .replace(/<Esc>/gi, "Esc")
+        .replace(/<C-([^>]+)>/gi, (_, k) => `⌃${k.toUpperCase()}`)
+        .replace(/<A-([^>]+)>/gi, (_, k) => `⌥${k.toUpperCase()}`)
+        .replace(/<S-([^>]+)>/gi, (_, k) => `⇧${k.toUpperCase()}`)
+        .trim();
+      customShortcuts.push({ keys: key, description: m[3] });
+    }
+    if (customShortcuts.length > 0) {
+      categories.push({ name: "Custom Keymaps", shortcuts: customShortcuts });
+    }
+  } catch {
+    // no keymaps file
+  }
+
+  // LazyVim defaults
+  categories.push(...LAZYVIM_DEFAULTS);
+
+  // Vim defaults
+  categories.push(...VIM_CATEGORIES);
+
+  return categories.length > 0 ? { name: "Neovim (LazyVim)", categories } : null;
+}
+
+// ---------------------------------------------------------------------------
 // Zed keymap parser
 // ---------------------------------------------------------------------------
 
@@ -637,6 +1119,9 @@ function loadZed(): App | null {
     if (shortcuts.length > 0) categories.push({ name: ctx, shortcuts });
   }
 
+  // Vim defaults
+  categories.push(...VIM_CATEGORIES);
+
   return categories.length > 0 ? { name: "Zed", categories } : null;
 }
 
@@ -652,6 +1137,8 @@ function loadApps(): App[] {
   if (tmux) apps.push(tmux);
   const zed = loadZed();
   if (zed) apps.push(zed);
+  const nvim = loadNeovim();
+  if (nvim) apps.push(nvim);
   return apps;
 }
 
