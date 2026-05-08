@@ -382,7 +382,7 @@ function loadTmux(): App | null {
   if (paneShortcuts.length > 0) categories.push({ name: "Panes", shortcuts: paneShortcuts });
   if (miscShortcuts.length > 0) categories.push({ name: "Copy & Misc", shortcuts: miscShortcuts });
 
-  return categories.length > 0 ? { name: "tmux", categories } : null;
+  return categories.length > 0 ? { name: "TMUX", categories } : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -390,6 +390,175 @@ function loadTmux(): App | null {
 // ---------------------------------------------------------------------------
 
 const STATIC_APPS: App[] = [
+  {
+    name: "macOS",
+    categories: [
+      {
+        name: "Screenshots",
+        shortcuts: [
+          { keys: "⌘⇧3", description: "Screenshot entire screen" },
+          { keys: "⌘⇧4", description: "Screenshot selection" },
+          { keys: "⌘⇧4 Space", description: "Screenshot window" },
+          { keys: "⌘⇧5", description: "Screenshot/recording toolbar" },
+          { keys: "⌘⇧6", description: "Screenshot Touch Bar" },
+          { keys: "⌃⌘⇧3", description: "Copy screenshot to clipboard" },
+          { keys: "⌃⌘⇧4", description: "Copy selection to clipboard" },
+        ],
+      },
+      {
+        name: "System Navigation",
+        shortcuts: [
+          { keys: "⌘Space", description: "Spotlight search" },
+          { keys: "⌃↑", description: "Mission Control" },
+          { keys: "⌃↓", description: "App windows (App Exposé)" },
+          { keys: "⌃←", description: "Move to left Space" },
+          { keys: "⌃→", description: "Move to right Space" },
+          { keys: "⌘⇥", description: "Switch application" },
+          { keys: "⌘⇧⇥", description: "Switch application (reverse)" },
+          { keys: "⌘`", description: "Switch window within app" },
+          { keys: "F11", description: "Show Desktop" },
+          { keys: "⌘⌥D", description: "Show/hide Dock" },
+          { keys: "⌘⌥Esc", description: "Force Quit applications" },
+          { keys: "⌃⌘Q", description: "Lock screen" },
+          { keys: "⌃⌘F", description: "Toggle full screen" },
+        ],
+      },
+      {
+        name: "Window Management",
+        shortcuts: [
+          { keys: "⌘M", description: "Minimize window" },
+          { keys: "⌘H", description: "Hide app" },
+          { keys: "⌘⌥H", description: "Hide other apps" },
+          { keys: "⌘W", description: "Close window" },
+          { keys: "⌘Q", description: "Quit app" },
+          { keys: "⌘⌥M", description: "Minimize all windows" },
+          { keys: "⌘⌥W", description: "Close all windows" },
+        ],
+      },
+      {
+        name: "Text Editing (System-wide)",
+        shortcuts: [
+          { keys: "⌘A", description: "Select all" },
+          { keys: "⌘C", description: "Copy" },
+          { keys: "⌘V", description: "Paste" },
+          { keys: "⌘X", description: "Cut" },
+          { keys: "⌘Z", description: "Undo" },
+          { keys: "⌘⇧Z", description: "Redo" },
+          { keys: "⌘⌥⇧V", description: "Paste and match style" },
+          { keys: "⌘F", description: "Find" },
+          { keys: "⌘G", description: "Find next" },
+          { keys: "⌘⇧G", description: "Find previous" },
+          { keys: "⌥⌫", description: "Delete word before cursor" },
+          { keys: "⌘⌫", description: "Delete to start of line" },
+          { keys: "⌥→", description: "Move cursor one word right" },
+          { keys: "⌥←", description: "Move cursor one word left" },
+          { keys: "⌘→", description: "Move cursor to end of line" },
+          { keys: "⌘←", description: "Move cursor to start of line" },
+          { keys: "⌘↑", description: "Move cursor to start of document" },
+          { keys: "⌘↓", description: "Move cursor to end of document" },
+          { keys: "⇧⌥→", description: "Select one word right" },
+          { keys: "⇧⌥←", description: "Select one word left" },
+          { keys: "⇧⌘→", description: "Select to end of line" },
+          { keys: "⇧⌘←", description: "Select to start of line" },
+        ],
+      },
+      {
+        name: "Accessibility & Input",
+        shortcuts: [
+          { keys: "⌘⌥F5", description: "Accessibility options" },
+          { keys: "⌘⌥+", description: "Zoom in" },
+          { keys: "⌘⌥-", description: "Zoom out" },
+          { keys: "⌃⌘Space", description: "Emoji & symbols picker" },
+          { keys: "⌃Space", description: "Switch input source" },
+          { keys: "⌘,", description: "Open app preferences" },
+          { keys: "⌘⌥Esc", description: "Force quit menu" },
+        ],
+      },
+      {
+        name: "Files & Dialogs",
+        shortcuts: [
+          { keys: "⌘O", description: "Open" },
+          { keys: "⌘S", description: "Save" },
+          { keys: "⌘⇧S", description: "Save as / Duplicate" },
+          { keys: "⌘P", description: "Print" },
+          { keys: "⌘N", description: "New" },
+          { keys: "⌘T", description: "New tab" },
+          { keys: "⌘⇧.", description: "Show hidden files (in dialog)" },
+        ],
+      },
+    ],
+  },
+  {
+    name: "Finder",
+    categories: [
+      {
+        name: "Navigation",
+        shortcuts: [
+          { keys: "⌘⇧G", description: "Go to folder" },
+          { keys: "⌘⇧H", description: "Go to Home" },
+          { keys: "⌘⇧D", description: "Go to Desktop" },
+          { keys: "⌘⇧O", description: "Go to Documents" },
+          { keys: "⌘⇧L", description: "Go to Downloads" },
+          { keys: "⌘⇧A", description: "Go to Applications" },
+          { keys: "⌘⇧U", description: "Go to Utilities" },
+          { keys: "⌘⇧C", description: "Go to Computer" },
+          { keys: "⌘⇧R", description: "Go to AirDrop" },
+          { keys: "⌘⇧I", description: "Go to iCloud Drive" },
+          { keys: "⌘⇧K", description: "Go to Network" },
+          { keys: "⌘↑", description: "Go to parent folder" },
+          { keys: "⌘↓", description: "Open selected item" },
+          { keys: "⌘[", description: "Go back" },
+          { keys: "⌘]", description: "Go forward" },
+          { keys: "⌘⌥P", description: "Toggle path bar" },
+          { keys: "⌘⌥S", description: "Toggle sidebar" },
+          { keys: "⌘/", description: "Toggle status bar" },
+        ],
+      },
+      {
+        name: "View",
+        shortcuts: [
+          { keys: "⌘1", description: "Icon view" },
+          { keys: "⌘2", description: "List view" },
+          { keys: "⌘3", description: "Column view" },
+          { keys: "⌘4", description: "Gallery view" },
+          { keys: "⌘J", description: "Show view options" },
+          { keys: "Space", description: "Quick Look" },
+          { keys: "⌘Y", description: "Quick Look (alternate)" },
+          { keys: "⌘⇧.", description: "Show/hide hidden files" },
+          { keys: "⌘⌥T", description: "Toggle toolbar" },
+        ],
+      },
+      {
+        name: "Files & Folders",
+        shortcuts: [
+          { keys: "⌘N", description: "New Finder window" },
+          { keys: "⌘⇧N", description: "New folder" },
+          { keys: "⌘D", description: "Duplicate" },
+          { keys: "⌘L", description: "Make alias" },
+          { keys: "⌘I", description: "Get info" },
+          { keys: "⌘⌥I", description: "Show inspector" },
+          { keys: "⌘C", description: "Copy" },
+          { keys: "⌘V", description: "Paste" },
+          { keys: "⌘⌥V", description: "Move (paste after cut)" },
+          { keys: "⌘Z", description: "Undo" },
+          { keys: "⌘A", description: "Select all" },
+          { keys: "↩", description: "Rename selected" },
+          { keys: "⌘⌫", description: "Move to Trash" },
+          { keys: "⌘⇧⌫", description: "Empty Trash" },
+          { keys: "⌘E", description: "Eject volume" },
+        ],
+      },
+      {
+        name: "Search & Tags",
+        shortcuts: [
+          { keys: "⌘F", description: "Find" },
+          { keys: "⌘⌥F", description: "Search bar focus" },
+          { keys: "⌘T", description: "New tab" },
+          { keys: "⌘W", description: "Close window" },
+        ],
+      },
+    ],
+  },
   {
     name: "Chrome",
     categories: [
@@ -1250,6 +1419,7 @@ function loadApps(): App[] {
   if (zed) apps.push(zed);
   const nvim = loadNeovim();
   if (nvim) apps.push(nvim);
+  apps.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
   return apps;
 }
 
