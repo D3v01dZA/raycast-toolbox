@@ -549,6 +549,117 @@ const STATIC_APPS: App[] = [
       },
     ],
   },
+  {
+    name: "Zoom",
+    categories: [
+      {
+        name: "Meeting Controls",
+        shortcuts: [
+          { keys: "⌘⇧A", description: "Mute/unmute audio" },
+          { keys: "⌘⇧V", description: "Start/stop video" },
+          { keys: "⌘⇧S", description: "Start/stop screen share" },
+          { keys: "⌘⇧T", description: "Pause/resume screen share" },
+          { keys: "⌘⇧R", description: "Start local recording" },
+          { keys: "⌘⇧C", description: "Start cloud recording" },
+          { keys: "⌘⇧P", description: "Pause/resume recording" },
+          { keys: "⌘W", description: "End or leave meeting" },
+        ],
+      },
+      {
+        name: "Chat & Participants",
+        shortcuts: [
+          { keys: "⌘⇧H", description: "Show/hide chat" },
+          { keys: "⌘U", description: "Show/hide participants" },
+          { keys: "⌘I", description: "Open invite window" },
+          { keys: "⌘⇧M", description: "Mute all (host)" },
+          { keys: "⌘⇧U", description: "Unmute all (host)" },
+        ],
+      },
+      {
+        name: "View & Layout",
+        shortcuts: [
+          { keys: "⌘⇧W", description: "Toggle speaker/gallery view" },
+          { keys: "⌘⇧F", description: "Enter/exit full screen" },
+          { keys: "⌘⇧M", description: "Toggle minimal window" },
+          { keys: "⌃⌥⌘H", description: "Show/hide meeting controls" },
+          { keys: "⌘+", description: "Zoom in (pinch out)" },
+          { keys: "⌘-", description: "Zoom out (pinch in)" },
+        ],
+      },
+      {
+        name: "Reactions & Feedback",
+        shortcuts: [
+          { keys: "⌘⇧Y", description: "Raise/lower hand" },
+          { keys: "Space", description: "Push to talk (when muted)" },
+        ],
+      },
+    ],
+  },
+  {
+    name: "Outlook",
+    categories: [
+      {
+        name: "Mail",
+        shortcuts: [
+          { keys: "⌘N", description: "New message" },
+          { keys: "⌘R", description: "Reply" },
+          { keys: "⌘⇧R", description: "Reply all" },
+          { keys: "⌘J", description: "Forward" },
+          { keys: "⌘↩", description: "Send message" },
+          { keys: "⌘⇧M", description: "Mark as read/unread" },
+          { keys: "⌘⇧J", description: "Mark as junk" },
+          { keys: "⌘E", description: "Archive" },
+          { keys: "⌫", description: "Delete message" },
+          { keys: "⌘⇧A", description: "Attach file" },
+          { keys: "⌘⇧S", description: "Save draft" },
+          { keys: "⌘⇧G", description: "Flag message" },
+          { keys: "⌘.", description: "Snooze" },
+        ],
+      },
+      {
+        name: "Navigation",
+        shortcuts: [
+          { keys: "⌘1", description: "Go to Mail" },
+          { keys: "⌘2", description: "Go to Calendar" },
+          { keys: "⌘3", description: "Go to People" },
+          { keys: "⌘4", description: "Go to To Do" },
+          { keys: "⌘7", description: "Go to Notes" },
+          { keys: "⌘8", description: "Go to Groups" },
+          { keys: "⌘⌥S", description: "Toggle sidebar" },
+          { keys: "⌘⇧F", description: "Search" },
+          { keys: "⌘⇧O", description: "Open in new window" },
+          { keys: "⌘⌥F", description: "Filter messages" },
+        ],
+      },
+      {
+        name: "Calendar",
+        shortcuts: [
+          { keys: "⌘N", description: "New event" },
+          { keys: "⌘T", description: "Go to today" },
+          { keys: "⌘→", description: "Go to next period" },
+          { keys: "⌘←", description: "Go to previous period" },
+          { keys: "⌘⌥1", description: "Day view" },
+          { keys: "⌘⌥2", description: "Work week view" },
+          { keys: "⌘⌥3", description: "Week view" },
+          { keys: "⌘⌥4", description: "Month view" },
+        ],
+      },
+      {
+        name: "Formatting",
+        shortcuts: [
+          { keys: "⌘B", description: "Bold" },
+          { keys: "⌘I", description: "Italic" },
+          { keys: "⌘U", description: "Underline" },
+          { keys: "⌘K", description: "Insert link" },
+          { keys: "⌘⇧T", description: "Strikethrough" },
+          { keys: "⌘{", description: "Decrease indent" },
+          { keys: "⌘}", description: "Increase indent" },
+          { keys: "⌘⇧L", description: "Bulleted list" },
+          { keys: "⌘⇧E", description: "Align center" },
+        ],
+      },
+    ],
+  },
 ];
 
 // ---------------------------------------------------------------------------
