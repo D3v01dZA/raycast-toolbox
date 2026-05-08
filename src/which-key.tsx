@@ -114,6 +114,76 @@ const APPS: App[] = [
       },
     ],
   },
+  {
+    name: "Slack",
+    categories: [
+      {
+        name: "Navigation",
+        shortcuts: [
+          { keys: "⌘K", description: "Quick switcher (jump to channel/DM)" },
+          { keys: "⌘⇧K", description: "Browse DMs" },
+          { keys: "⌘⇧L", description: "Browse channels" },
+          { keys: "⌘⇧A", description: "All unreads" },
+          { keys: "⌘⇧T", description: "Threads" },
+          { keys: "⌘⇧S", description: "Saved items" },
+          { keys: "⌘⇧E", description: "People & user groups" },
+          { keys: "⌘.", description: "Toggle right sidebar" },
+          { keys: "⌘⇧D", description: "Toggle sidebar" },
+          { keys: "⌘⇧F", description: "Search" },
+          { keys: "⌘⇧Y", description: "Set status" },
+          { keys: "⌘[", description: "Go back" },
+          { keys: "⌘]", description: "Go forward" },
+          { keys: "⌥↑", description: "Previous channel/DM" },
+          { keys: "⌥↓", description: "Next channel/DM" },
+          { keys: "⌥⇧↑", description: "Previous unread channel/DM" },
+          { keys: "⌥⇧↓", description: "Next unread channel/DM" },
+          { keys: "⌘1–⌘9", description: "Switch workspace" },
+        ],
+      },
+      {
+        name: "Messages",
+        shortcuts: [
+          { keys: "⌘N", description: "Compose new message" },
+          { keys: "⌘⇧↩", description: "Create snippet" },
+          { keys: "⌘U", description: "Upload file" },
+          { keys: "⇧↩", description: "New line in message" },
+          { keys: "↑", description: "Edit last message" },
+          { keys: "⌘⇧\\", description: "React to last message" },
+          { keys: "E", description: "Add emoji reaction (hover)" },
+          { keys: "R", description: "Reply in thread (hover)" },
+          { keys: "T", description: "Open thread (hover)" },
+          { keys: "P", description: "Pin message (hover)" },
+          { keys: "S", description: "Share message (hover)" },
+          { keys: "A", description: "Save message (hover)" },
+          { keys: "M", description: "Remind about message (hover)" },
+          { keys: "U", description: "Mark unread (hover)" },
+          { keys: "Delete", description: "Delete message (hover)" },
+        ],
+      },
+      {
+        name: "Formatting",
+        shortcuts: [
+          { keys: "⌘B", description: "Bold" },
+          { keys: "⌘I", description: "Italic" },
+          { keys: "⌘⇧X", description: "Strikethrough" },
+          { keys: "⌘⇧C", description: "Code block" },
+          { keys: "⌘⇧7", description: "Ordered list" },
+          { keys: "⌘⇧8", description: "Bulleted list" },
+          { keys: "⌘⇧9", description: "Blockquote" },
+          { keys: "⌘⇧F", description: "Toggle formatting toolbar" },
+        ],
+      },
+      {
+        name: "Calls",
+        shortcuts: [
+          { keys: "M", description: "Mute/unmute (in call)" },
+          { keys: "V", description: "Toggle video (in call)" },
+          { keys: "A", description: "Toggle screen share (in call)" },
+          { keys: "E", description: "Show reactions (in call)" },
+        ],
+      },
+    ],
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -144,16 +214,14 @@ export default function Command() {
   return (
     <List
       onSearchTextChange={setText}
-      searchBarPlaceholder={`Search ${app.name} shortcuts...`}
+      searchBarPlaceholder="Search shortcuts..."
       throttle
       searchBarAccessory={
-        APPS.length > 1 ? (
-          <List.Dropdown tooltip="Application" onChange={setSelectedApp}>
-            {APPS.map((a) => (
-              <List.Dropdown.Item key={a.name} title={a.name} value={a.name} />
-            ))}
-          </List.Dropdown>
-        ) : undefined
+        <List.Dropdown tooltip="Application" onChange={setSelectedApp}>
+          {APPS.map((a) => (
+            <List.Dropdown.Item key={a.name} title={a.name} value={a.name} />
+          ))}
+        </List.Dropdown>
       }
     >
       {app.categories.map((category) => {
